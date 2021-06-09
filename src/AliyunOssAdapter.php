@@ -2,14 +2,14 @@
 
 namespace AlphaSnow\Flysystem\AliyunOss;
 
-use League\Flysystem\Adapter\CanOverwriteFiles;
-use OSS\OssClient;
-use League\Flysystem\Util;
-use League\Flysystem\Config;
 use League\Flysystem\Adapter\AbstractAdapter;
-use League\Flysystem\Adapter\Polyfill\StreamedTrait;
+use League\Flysystem\Adapter\CanOverwriteFiles;
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
+use League\Flysystem\Adapter\Polyfill\StreamedTrait;
 use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
+use League\Flysystem\Util;
+use OSS\OssClient;
 
 /**
  * @package AlphaSnow\Flysystem\AliyunOss
