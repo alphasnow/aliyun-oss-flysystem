@@ -1,0 +1,9 @@
+parameters:
+    level: 3
+
+    inferPrivatePropertyTypeFromConstructor: true
+
+    paths:
+        - %currentWorkingDirectory%/src
+
+    ignoreErrors:

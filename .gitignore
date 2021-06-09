@@ -1,8 +1,6 @@
-vendor
-composer.lock
-doc
-output
-.idea
-.buildpath
-.project
-.settings
+/vendor/
+/composer.lock
+/.idea
+/.php_cs.cache
+/.phpunit.result.cache
+/phpunit.xml

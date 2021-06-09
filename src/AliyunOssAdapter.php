@@ -1,9 +1,8 @@
 <?php
 
-namespace Aliyun\Flysystem\AliyunOss;
+namespace AlphaSnow\Flysystem\AliyunOss;
 
 use OSS\OssClient;
-use OSS\Core\OssException;
 use League\Flysystem\Util;
 use League\Flysystem\Config;
 use League\Flysystem\Adapter\AbstractAdapter;
@@ -45,7 +44,7 @@ class AliyunOssAdapter extends AbstractAdapter
      */
     protected static $mappingOptions = [
         'mimetype' => OssClient::OSS_CONTENT_TYPE,
-        'size'     => OssClient::OSS_LENGTH,
+        'size' => OssClient::OSS_LENGTH,
     ];
 
     /**
@@ -97,7 +96,7 @@ class AliyunOssAdapter extends AbstractAdapter
         $object = $this->applyPathPrefix($path);
         $options = $this->getOptionsFromConfig($config);
 
-        if (! isset($options[OssClient::OSS_CONTENT_TYPE])) {
+        if (!isset($options[OssClient::OSS_CONTENT_TYPE])) {
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, '');
         }
 
@@ -107,7 +106,7 @@ class AliyunOssAdapter extends AbstractAdapter
         $result = compact('type', 'path');
         $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
         return $result;
-	}
+    }
 
     /**
      * Write a new file.
@@ -122,21 +121,21 @@ class AliyunOssAdapter extends AbstractAdapter
         $object = $this->applyPathPrefix($path);
         $options = $this->getOptionsFromConfig($config);
 
-        if (! isset($options[OssClient::OSS_LENGTH])) {
+        if (!isset($options[OssClient::OSS_LENGTH])) {
             $options[OssClient::OSS_LENGTH] = Util::contentSize($contents);
         }
 
-        if (! isset($options[OssClient::OSS_CONTENT_TYPE])) {
+        if (!isset($options[OssClient::OSS_CONTENT_TYPE])) {
             $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $contents);
         }
 
         $this->client->putObject($this->bucket, $object, $contents, $options);
-    
-		$type = 'file';
+
+        $type = 'file';
         $result = compact('type', 'path', 'contents');
         $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
         $result['size'] = $options[OssClient::OSS_LENGTH];
-        return $result;    
+        return $result;
     }
 
     /**
@@ -149,8 +148,8 @@ class AliyunOssAdapter extends AbstractAdapter
      */
     public function update($path, $contents, Config $config)
     {
-		if (! $config->has('visibility') && ! $config->has('ACL')) {
-        	$config->set('ACL', $this->getObjectACL($path));
+        if (!$config->has('visibility') && !$config->has('ACL')) {
+            $config->set('ACL', $this->getObjectACL($path));
         }
         return $this->write($path, $contents, $config);
     }
@@ -245,10 +244,9 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $object = $this->applyPathPrefix($path);
 
-        if ($this->client->doesObjectExist($this->bucket, $object))
-		{
-			return true;
-		}
+        if ($this->client->doesObjectExist($this->bucket, $object)) {
+            return true;
+        }
 
         return $this->doesDirectoryExist($object);
     }
@@ -284,9 +282,9 @@ class AliyunOssAdapter extends AbstractAdapter
         $maxkeys = 1000;
         $options = [
             'delimiter' => $delimiter,
-            'prefix'    => $directory,
-            'max-keys'  => $maxkeys,
-            'marker'    => $nextMarker,
+            'prefix' => $directory,
+            'max-keys' => $maxkeys,
+            'marker' => $nextMarker,
         ];
 
         $listObjectInfo = $this->client->listObjects($bucket, $options);
@@ -298,18 +296,18 @@ class AliyunOssAdapter extends AbstractAdapter
         foreach ($objectList as $objectInfo) {
             if ($objectInfo->getSize() === 0 && $directory === $objectInfo->getKey()) {
                 $result[] = [
-                    'type'      => 'dir',
-                    'path'      => $this->removePathPrefix(rtrim($objectInfo->getKey(), '/')),
+                    'type' => 'dir',
+                    'path' => $this->removePathPrefix(rtrim($objectInfo->getKey(), '/')),
                     'timestamp' => strtotime($objectInfo->getLastModified()),
                 ];
                 continue;
             }
 
             $result[] = [
-                'type'      => 'file',
-                'path'      => $this->removePathPrefix($objectInfo->getKey()),
+                'type' => 'file',
+                'path' => $this->removePathPrefix($objectInfo->getKey()),
                 'timestamp' => strtotime($objectInfo->getLastModified()),
-                'size'      => $objectInfo->getSize(),
+                'size' => $objectInfo->getSize(),
             ];
         }
 
@@ -319,8 +317,8 @@ class AliyunOssAdapter extends AbstractAdapter
                 $result = array_merge($result, $next);
             } else {
                 $result[] = [
-                    'type'      => 'dir',
-                    'path'      => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '/')),
+                    'type' => 'dir',
+                    'path' => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '/')),
                     'timestamp' => 0,
                 ];
             }
@@ -343,12 +341,12 @@ class AliyunOssAdapter extends AbstractAdapter
         $result = $this->client->getObjectMeta($this->bucket, $object);
 
         return [
-            'type'      => 'file',
-            'dirname'   => Util::dirname($path),
-            'path'      => $path,
+            'type' => 'file',
+            'dirname' => Util::dirname($path),
+            'path' => $path,
             'timestamp' => strtotime($result['last-modified']),
-            'mimetype'  => $result['content-type'],
-            'size'      => $result['content-length'],
+            'mimetype' => $result['content-type'],
+            'size' => $result['content-length'],
         ];
     }
 
@@ -395,7 +393,7 @@ class AliyunOssAdapter extends AbstractAdapter
     {
         $options = $this->options;
         foreach (static::$mappingOptions as $option => $ossOption) {
-            if (! $config->has($option)) {
+            if (!$config->has($option)) {
                 continue;
             }
             $options[$ossOption] = $config->get($option);
@@ -410,23 +408,23 @@ class AliyunOssAdapter extends AbstractAdapter
     public function setVisibility($path, $visibility)
     {
         $object = $this->applyPathPrefix($path);
-        $acl = ($visibility === AdapterInterface::VISIBILITY_PUBLIC ) ? 'public-read' : 'private';
+        $acl = ($visibility === AdapterInterface::VISIBILITY_PUBLIC) ? 'public-read' : 'private';
         $this->client->putObjectAcl($this->bucket, $object, $acl);
         return compact('visibility');
     }
 
-   /**
-     * {@inheritdoc}
-     */
+    /**
+      * {@inheritdoc}
+      */
     public function getVisibility($path)
     {
         $bucket = $this->bucket;
         $object = $this->applyPathPrefix($path);
-		$res['visibility'] = $this->client->getObjectAcl($bucket, $object);
-		return $res;
+        $res['visibility'] = $this->client->getObjectAcl($bucket, $object);
+        return $res;
     }
-    
-	/**
+
+    /**
      * The the ACL visibility.
      *
      * @param string $path
@@ -438,8 +436,8 @@ class AliyunOssAdapter extends AbstractAdapter
         $metadata = $this->getVisibility($path);
         return $metadata['visibility'] === AdapterInterface::VISIBILITY_PUBLIC ? 'public-read' : 'private';
     }
-	
-	protected function doesDirectoryExist($object)
+
+    protected function doesDirectoryExist($object)
     {
         // Maybe this isn't an actual key, but a prefix.
         // Do a prefix listing of objects to determine.
@@ -448,24 +446,23 @@ class AliyunOssAdapter extends AbstractAdapter
         $delimiter = '/';
         $nextMarker = '';
         $maxkeys = 1000;
-		$prefix = rtrim($object, '/') . '/';
+        $prefix = rtrim($object, '/') . '/';
         $options = [
             'delimiter' => $delimiter,
-            'prefix'    => $prefix,
-            'max-keys'  => $maxkeys,
-            'marker'    => $nextMarker,
+            'prefix' => $prefix,
+            'max-keys' => $maxkeys,
+            'marker' => $nextMarker,
         ];
 
         $listObjectInfo = $this->client->listObjects($bucket, $options);
         $objectList = $listObjectInfo->getObjectList(); // 文件列表
         $prefixList = $listObjectInfo->getPrefixList(); // 目录列表
 
-		return $objectList || $prefixList;
+        return $objectList || $prefixList;
     }
-    
+
     protected function applyPathSeparator($path)
     {
         return rtrim($path, '\\/') . '/';
     }
-
 }

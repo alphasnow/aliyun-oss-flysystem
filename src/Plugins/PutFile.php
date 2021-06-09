@@ -1,6 +1,6 @@
 <?php
 
-namespace Aliyun\Flysystem\AliyunOss\Plugins;
+namespace AlphaSnow\Flysystem\AliyunOss\Plugins;
 
 use League\Flysystem\Config;
 use League\Flysystem\Plugin\AbstractPlugin;
@@ -33,11 +33,11 @@ class PutFile extends AbstractPlugin
      */
     public function handle($path, $localFilePath, array $config = [])
     {
-        if (! method_exists($this->filesystem, 'getAdapter')) {
+        if (!method_exists($this->filesystem, 'getAdapter')) {
             return false;
         }
 
-        if (! method_exists($this->filesystem->getAdapter(), 'putFile')) {
+        if (!method_exists($this->filesystem->getAdapter(), 'putFile')) {
             return false;
         }
 
