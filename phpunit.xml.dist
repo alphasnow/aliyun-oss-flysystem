@@ -19,4 +19,11 @@
             <directory suffix=".php">src/</directory>
         </whitelist>
     </filter>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="ALIYUN_OSS_ACCESS_ID" value="access_id" />
+        <env name="ALIYUN_OSS_ACCESS_KEY" value="access_key" />
+        <env name="ALIYUN_OSS_BUCKET" value="bucket" />
+        <env name="ALIYUN_OSS_ENDPOINT" value="endpoint.com" />
+    </php>
 </phpunit>

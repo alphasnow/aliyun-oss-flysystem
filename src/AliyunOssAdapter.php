@@ -2,6 +2,7 @@
 
 namespace AlphaSnow\Flysystem\AliyunOss;
 
+use League\Flysystem\Adapter\CanOverwriteFiles;
 use OSS\OssClient;
 use League\Flysystem\Util;
 use League\Flysystem\Config;
@@ -11,25 +12,19 @@ use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\AdapterInterface;
 
 /**
- * Aliyun Oss Adapter class.
- *
- * @author  RobertYue19900425 <yueqiankun@163.com>
+ * @package AlphaSnow\Flysystem\AliyunOss
  */
-class AliyunOssAdapter extends AbstractAdapter
+class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 {
-    use StreamedTrait;
     use NotSupportingVisibilityTrait;
+    use StreamedTrait;
 
     /**
-     * Aliyun Oss Client.
-     *
-     * @var \OSS\OssClient
+     * @var OssClient
      */
     protected $client;
 
     /**
-     * bucket name.
-     *
      * @var string
      */
     protected $bucket;
@@ -42,164 +37,93 @@ class AliyunOssAdapter extends AbstractAdapter
     /**
      * @var array
      */
-    protected static $mappingOptions = [
-        'mimetype' => OssClient::OSS_CONTENT_TYPE,
-        'size' => OssClient::OSS_LENGTH,
+    protected static $metaMap = [
+        'CacheControl' => 'Cache-Control',
+        'Expires' => 'Expires',
+        'ServerSideEncryption' => 'x-oss-server-side-encryption',
+        'Metadata' => 'x-oss-metadata-directive',
+        'ACL' => 'x-oss-object-acl',
+        'ContentType' => 'Content-Type',
+        'ContentDisposition' => 'Content-Disposition',
+        'ContentLanguage' => 'response-content-language',
+        'ContentEncoding' => 'Content-Encoding',
     ];
 
     /**
-     * Constructor.
-     *
+     * @var null|array|\OSS\Http\ResponseCore
+     */
+    protected $result;
+
+    /**
      * @param OssClient $client
-     * @param string    $bucket
-     * @param string    $prefix
-     * @param array     $options
+     * @param string $bucket
+     * @param string $prefix
+     * @param array $options
      */
     public function __construct(OssClient $client, $bucket, $prefix = null, array $options = [])
     {
         $this->client = $client;
         $this->bucket = $bucket;
         $this->setPathPrefix($prefix);
-        $this->options = array_merge($this->options, $options);
+        $this->options = $options;
     }
 
     /**
-     * Get the Aliyun Oss Client bucket.
-     *
-     * @return string
-     */
-    public function getBucket()
-    {
-        return $this->bucket;
-    }
-
-    /**
-     * Get the Aliyun Oss Client instance.
-     *
-     * @return \OSS\OssClient
-     */
-    public function getClient()
-    {
-        return $this->client;
-    }
-
-    /**
-     * Write using a local file path.
-     *
-     * @param string $path
-     * @param string $localFilePath
-     * @param Config $config Config object
-     * @return array|false false on failure file meta data on success
-     */
-    public function putFile($path, $localFilePath, Config $config)
-    {
-        $object = $this->applyPathPrefix($path);
-        $options = $this->getOptionsFromConfig($config);
-
-        if (!isset($options[OssClient::OSS_CONTENT_TYPE])) {
-            $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, '');
-        }
-
-        $this->client->uploadFile($this->bucket, $object, $localFilePath, $options);
-
-        $type = 'file';
-        $result = compact('type', 'path');
-        $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
-        return $result;
-    }
-
-    /**
-     * Write a new file.
-     *
-     * @param string $path
-     * @param string $contents
-     * @param Config $config Config object
-     * @return array|false false on failure file meta data on success
+     * {@inheritdoc}
      */
     public function write($path, $contents, Config $config)
     {
         $object = $this->applyPathPrefix($path);
         $options = $this->getOptionsFromConfig($config);
 
-        if (!isset($options[OssClient::OSS_LENGTH])) {
-            $options[OssClient::OSS_LENGTH] = Util::contentSize($contents);
-        }
-
-        if (!isset($options[OssClient::OSS_CONTENT_TYPE])) {
-            $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $contents);
-        }
-
-        $this->client->putObject($this->bucket, $object, $contents, $options);
-
-        $type = 'file';
-        $result = compact('type', 'path', 'contents');
-        $result['mimetype'] = $options[OssClient::OSS_CONTENT_TYPE];
-        $result['size'] = $options[OssClient::OSS_LENGTH];
-        return $result;
+        $this->result = $this->client->putObject($this->bucket, $object, $contents, $options);
+        return [
+            'type' => 'file',
+            'path' => $path
+        ];
     }
 
     /**
-     * Update a file.
-     *
-     * @param string $path
-     * @param string $contents
-     * @param Config $config Config object
-     * @return array|false false on failure file meta data on success
+     * {@inheritdoc}
      */
     public function update($path, $contents, Config $config)
     {
-        if (!$config->has('visibility') && !$config->has('ACL')) {
-            $config->set('ACL', $this->getObjectACL($path));
-        }
         return $this->write($path, $contents, $config);
     }
 
     /**
-     * Rename a file.
-     *
-     * @param string $path
-     * @param string $newpath
-     * @return bool
+     * {@inheritdoc}
      */
     public function rename($path, $newpath)
     {
-        $this->copy($path, $newpath);
-        $this->delete($path);
+        return $this->copy($path, $newpath) && $this->delete($path);
     }
 
     /**
-     * Copy a file.
-     *
-     * @param string $path
-     * @param string $newpath
-     * @return bool
+     * {@inheritdoc}
      */
     public function copy($path, $newpath)
     {
         $object = $this->applyPathPrefix($path);
         $newobject = $this->applyPathPrefix($newpath);
 
-        $this->client->copyObject($this->bucket, $object, $this->bucket, $newobject);
+        $this->result = $this->client->copyObject($this->bucket, $object, $this->bucket, $newobject, $this->options);
+        return true;
     }
 
     /**
-     * Delete a file.
-     *
-     * @param string $path
-     * @return bool
+     * {@inheritdoc}
      */
     public function delete($path)
     {
         $object = $this->applyPathPrefix($path);
 
-        $this->client->deleteObject($this->bucket, $object);
+        $this->result = $this->client->deleteObject($this->bucket, $object, $this->options);
+        return true;
     }
 
     /**
-     * Delete a directory.
-     *
-     * @param string $dirname
-     * @return bool
+     * {@inheritdoc}
      */
     public function deleteDir($dirname)
     {
@@ -207,97 +131,99 @@ class AliyunOssAdapter extends AbstractAdapter
 
         $objects = [];
         foreach ($list as $val) {
-            if ($val['type'] === 'file') {
-                $objects[] = $this->applyPathPrefix($val['path']);
+            if ($val['type'] === 'dir') {
+                $path = rtrim($val['path'], '\\/') . '/';
             } else {
-                $objects[] = $this->applyPathPrefix($val['path']) .'/';
+                $path = $val['path'];
             }
+
+            $objects[] = $this->applyPathPrefix($path);
         }
 
-        $this->client->deleteObjects($this->bucket, $objects);
+        $this->result = $this->client->deleteObjects($this->bucket, $objects, $this->options);
+        return true;
     }
 
     /**
-     * Create a directory.
-     *
-     * @param string $dirname directory name
-     * @param Config $config
-     * @return array|false
+     * {@inheritdoc}
      */
     public function createDir($dirname, Config $config)
     {
         $object = $this->applyPathPrefix($dirname);
         $options = $this->getOptionsFromConfig($config);
 
-        $this->client->createObjectDir($this->bucket, $object, $options);
-
-        return ['path' => $dirname, 'type' => 'dir'];
+        $this->result = $this->client->createObjectDir($this->bucket, $object, $options);
+        return [
+            'type' => 'dir',
+            'path' => $dirname
+        ];
     }
 
     /**
-     * Check whether a file exists.
-     *
-     * @param string $path
-     * @return bool
+     * {@inheritdoc}
+     */
+    public function setVisibility($path, $visibility)
+    {
+        $object = $this->applyPathPrefix($path);
+        $acl = $this->visibilityToAcl($visibility);
+
+        $this->result = $this->client->putObjectAcl($this->bucket, $object, $acl, $this->options);
+        return [
+            'path' => $path,
+            'visibility' => $visibility
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function has($path)
     {
         $object = $this->applyPathPrefix($path);
 
-        if ($this->client->doesObjectExist($this->bucket, $object)) {
-            return true;
-        }
-
-        return $this->doesDirectoryExist($object);
+        return $this->client->doesObjectExist($this->bucket, $object, $this->options);
     }
 
     /**
-     * Read a file.
-     *
-     * @param string $path
-     * @return array|false
+     * {@inheritdoc}
      */
     public function read($path)
     {
         $object = $this->applyPathPrefix($path);
-        $contents = $this->client->getObject($this->bucket, $object);
-        return compact('contents', 'path');
+
+        $contents = $this->client->getObject($this->bucket, $object, $this->options);
+        return [
+            'path' => $path,
+            'content' => $contents
+        ];
     }
 
     /**
-     * List contents of a directory.
-     *
-     * @param string $directory
-     * @param bool   $recursive
-     * @return array
+     * {@inheritdoc}
      */
     public function listContents($directory = '', $recursive = false)
     {
-        $directory = $this->applyPathPrefix($directory);
-        $directory = $this->applyPathSeparator($directory);
+        $directory = $this->applyPathPrefix(rtrim($directory, '\\/') . '/');
 
-        $bucket = $this->bucket;
-        $delimiter = '/';
-        $nextMarker = '';
-        $maxkeys = 1000;
-        $options = [
-            'delimiter' => $delimiter,
-            'prefix' => $directory,
-            'max-keys' => $maxkeys,
-            'marker' => $nextMarker,
-        ];
+        $options = array_merge([
+            'delimiter' => '/',
+            'max-keys' => 1000,
+            'marker' => '',
+        ], $this->options, [
+            'prefix' => $directory
+        ]);
 
-        $listObjectInfo = $this->client->listObjects($bucket, $options);
+        $listObjectInfo = $this->client->listObjects($this->bucket, $options);
 
-        $objectList = $listObjectInfo->getObjectList(); // 文件列表
-        $prefixList = $listObjectInfo->getPrefixList(); // 目录列表
+        $objectList = $listObjectInfo->getObjectList();
+        $prefixList = $listObjectInfo->getPrefixList();
 
         $result = [];
         foreach ($objectList as $objectInfo) {
             if ($objectInfo->getSize() === 0 && $directory === $objectInfo->getKey()) {
                 $result[] = [
                     'type' => 'dir',
-                    'path' => $this->removePathPrefix(rtrim($objectInfo->getKey(), '/')),
+                    'path' => $this->removePathPrefix(rtrim($objectInfo->getKey(), '\\/')),
                     'timestamp' => strtotime($objectInfo->getLastModified()),
                 ];
                 continue;
@@ -318,7 +244,7 @@ class AliyunOssAdapter extends AbstractAdapter
             } else {
                 $result[] = [
                     'type' => 'dir',
-                    'path' => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '/')),
+                    'path' => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '\\/')),
                     'timestamp' => 0,
                 ];
             }
@@ -328,17 +254,13 @@ class AliyunOssAdapter extends AbstractAdapter
     }
 
     /**
-     * Get all the meta data of a file or directory.
-     *
-     * @param string $path
-     * @return array|false
-     * @throws \OSS\Core\OssException
+     * {@inheritdoc}
      */
     public function getMetadata($path)
     {
         $object = $this->applyPathPrefix($path);
 
-        $result = $this->client->getObjectMeta($this->bucket, $object);
+        $result = $this->client->getObjectMeta($this->bucket, $object, $this->options);
 
         return [
             'type' => 'file',
@@ -351,10 +273,7 @@ class AliyunOssAdapter extends AbstractAdapter
     }
 
     /**
-     * Get all the meta data of a file or directory.
-     *
-     * @param string $path
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getSize($path)
     {
@@ -362,10 +281,7 @@ class AliyunOssAdapter extends AbstractAdapter
     }
 
     /**
-     * Get the mimetype of a file.
-     *
-     * @param string $path
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getMimetype($path)
     {
@@ -373,10 +289,7 @@ class AliyunOssAdapter extends AbstractAdapter
     }
 
     /**
-     * Get the timestamp of a file.
-     *
-     * @param string $path
-     * @return array|false
+     * {@inheritdoc}
      */
     public function getTimestamp($path)
     {
@@ -384,85 +297,56 @@ class AliyunOssAdapter extends AbstractAdapter
     }
 
     /**
-     * Get options from the config.
-     *
+     * {@inheritdoc}
+     */
+    public function getVisibility($path)
+    {
+        $object = $this->applyPathPrefix($path);
+
+        $acl = $this->client->getObjectAcl($this->bucket, $object, $this->options);
+        $visibility = $this->aclToVisibility($acl);
+        return [
+            'visibility' => $visibility
+        ];
+    }
+
+    /**
      * @param Config $config
      * @return array
      */
     protected function getOptionsFromConfig(Config $config)
     {
-        $options = $this->options;
-        foreach (static::$mappingOptions as $option => $ossOption) {
-            if (!$config->has($option)) {
+        $options = [];
+
+        if ($visibility = $config->get('visibility')) {
+            $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibilityToAcl($visibility);
+        }
+
+        foreach (static::$metaMap as $meta => $map) {
+            if (!$config->has($meta)) {
                 continue;
             }
-            $options[$ossOption] = $config->get($option);
+            $options[$map] = $config->get($meta);
         }
 
         return $options;
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function setVisibility($path, $visibility)
-    {
-        $object = $this->applyPathPrefix($path);
-        $acl = ($visibility === AdapterInterface::VISIBILITY_PUBLIC) ? 'public-read' : 'private';
-        $this->client->putObjectAcl($this->bucket, $object, $acl);
-        return compact('visibility');
-    }
-
-    /**
-      * {@inheritdoc}
-      */
-    public function getVisibility($path)
-    {
-        $bucket = $this->bucket;
-        $object = $this->applyPathPrefix($path);
-        $res['visibility'] = $this->client->getObjectAcl($bucket, $object);
-        return $res;
-    }
-
-    /**
-     * The the ACL visibility.
-     *
-     * @param string $path
-     *
+     * @param string $visibility
      * @return string
      */
-    protected function getObjectACL($path)
+    protected function visibilityToAcl($visibility)
     {
-        $metadata = $this->getVisibility($path);
-        return $metadata['visibility'] === AdapterInterface::VISIBILITY_PUBLIC ? 'public-read' : 'private';
+        return $visibility === AdapterInterface::VISIBILITY_PUBLIC ? OssClient::OSS_ACL_TYPE_PUBLIC_READ : OssClient::OSS_ACL_TYPE_PRIVATE;
     }
 
-    protected function doesDirectoryExist($object)
+    /**
+     * @param string $acl
+     * @return string
+     */
+    protected function aclToVisibility($acl)
     {
-        // Maybe this isn't an actual key, but a prefix.
-        // Do a prefix listing of objects to determine.
-
-        $bucket = $this->bucket;
-        $delimiter = '/';
-        $nextMarker = '';
-        $maxkeys = 1000;
-        $prefix = rtrim($object, '/') . '/';
-        $options = [
-            'delimiter' => $delimiter,
-            'prefix' => $prefix,
-            'max-keys' => $maxkeys,
-            'marker' => $nextMarker,
-        ];
-
-        $listObjectInfo = $this->client->listObjects($bucket, $options);
-        $objectList = $listObjectInfo->getObjectList(); // 文件列表
-        $prefixList = $listObjectInfo->getPrefixList(); // 目录列表
-
-        return $objectList || $prefixList;
-    }
-
-    protected function applyPathSeparator($path)
-    {
-        return rtrim($path, '\\/') . '/';
+        return $acl === OssClient::OSS_ACL_TYPE_PRIVATE ? AdapterInterface::VISIBILITY_PRIVATE : AdapterInterface::VISIBILITY_PUBLIC;
     }
 }
