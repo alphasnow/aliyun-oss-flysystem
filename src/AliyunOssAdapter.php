@@ -194,7 +194,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         $contents = $this->client->getObject($this->bucket, $object, $this->options);
         return [
             'path' => $path,
-            'content' => $contents
+            'contents' => $contents
         ];
     }
 
@@ -203,7 +203,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     public function listContents($directory = '', $recursive = false)
     {
-        $directory = $this->applyPathPrefix(rtrim($directory, '\\/') . '/');
+        $directory = $this->applyPathPrefix(rtrim($directory, '/').'/');
 
         $options = array_merge([
             'delimiter' => '/',
@@ -213,41 +213,45 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             'prefix' => $directory
         ]);
 
-        $listObjectInfo = $this->client->listObjects($this->bucket, $options);
-
-        $objectList = $listObjectInfo->getObjectList();
-        $prefixList = $listObjectInfo->getPrefixList();
-
         $result = [];
-        foreach ($objectList as $objectInfo) {
-            if ($objectInfo->getSize() === 0 && $directory === $objectInfo->getKey()) {
-                $result[] = [
-                    'type' => 'dir',
-                    'path' => $this->removePathPrefix(rtrim($objectInfo->getKey(), '\\/')),
-                    'timestamp' => strtotime($objectInfo->getLastModified()),
-                ];
-                continue;
+
+        while(true){
+            $listObjectInfo = $this->client->listObjects($this->bucket, $options);
+
+            $nextMarker = $listObjectInfo->getNextMarker();
+            $objectList = $listObjectInfo->getObjectList();
+            $prefixList = $listObjectInfo->getPrefixList();
+
+            if (!empty($objectList)) {
+                foreach ($objectList as $objectInfo) {
+                    $result[] = [
+                        'type'      => 'file',
+                        'path'      => $this->removePathPrefix($objectInfo->getKey()),
+                        'size'      => $objectInfo->getSize(),
+                    ];
+                }
             }
 
-            $result[] = [
-                'type' => 'file',
-                'path' => $this->removePathPrefix($objectInfo->getKey()),
-                'timestamp' => strtotime($objectInfo->getLastModified()),
-                'size' => $objectInfo->getSize(),
-            ];
-        }
-
-        foreach ($prefixList as $prefixInfo) {
-            if ($recursive) {
-                $next = $this->listContents($this->removePathPrefix($prefixInfo->getPrefix()), $recursive);
-                $result = array_merge($result, $next);
-            } else {
-                $result[] = [
-                    'type' => 'dir',
-                    'path' => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '\\/')),
-                    'timestamp' => 0,
-                ];
+            if (!empty($prefixList)) {
+                foreach ($prefixList as $prefixInfo) {
+                    $result[] = [
+                        'type'      => 'dir',
+                        'path'      => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '/').'/'),
+                    ];
+                }
             }
+
+            if($recursive){
+                foreach( $prefixList as $prefixInfo){
+                    $nextDirectory = rtrim($prefixInfo->getPrefix(), '/').'/';
+                    if($nextDirectory == $directory) break;
+                    $next  =  $this->listContents( $nextDirectory, $recursive);
+                    $result = array_merge($result,$next);
+                }
+            }
+
+            if (!$nextMarker) break;
+            $options['marker'] = $nextMarker;
         }
 
         return $result;
@@ -266,7 +270,6 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             'type' => 'file',
             'dirname' => Util::dirname($path),
             'path' => $path,
-            'timestamp' => strtotime($result['last-modified']),
             'mimetype' => $result['content-type'],
             'size' => $result['content-length'],
         ];
