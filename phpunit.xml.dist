@@ -20,7 +20,7 @@
         </whitelist>
     </filter>
     <php>
-        <const name="PHPUNIT_RUNNING" value="false" />
+        <const name="PHPUNIT_RUNNING" value="true" />
         <env name="ALIYUN_OSS_ACCESS_ID" value="access_id" />
         <env name="ALIYUN_OSS_ACCESS_KEY" value="access_key" />
         <env name="ALIYUN_OSS_BUCKET" value="bucket" />
