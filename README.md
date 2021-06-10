@@ -65,3 +65,5 @@ $flysystem->getTimestamp('file.md');
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem?ref=badge_large)
