@@ -4,10 +4,10 @@
     "keywords": [
         "aliyun",
         "oss",
-        "laravel",
-        "filesystems",
-        "storage"
+        "filesystem",
+        "adapter"
     ],
+    "homepage": "https://alphasnow.github.io/aliyun-oss-flysystem/",
     "license": "MIT",
     "authors": [
         {

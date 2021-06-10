@@ -41,15 +41,15 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      * @var array
      */
     protected static $metaMap = [
-        'CacheControl' => 'Cache-Control',
-        'Expires' => 'Expires',
-        'ServerSideEncryption' => 'x-oss-server-side-encryption',
-        'Metadata' => 'x-oss-metadata-directive',
-        'ACL' => 'x-oss-object-acl',
-        'ContentType' => 'Content-Type',
-        'ContentDisposition' => 'Content-Disposition',
-        'ContentLanguage' => 'response-content-language',
-        'ContentEncoding' => 'Content-Encoding',
+        "CacheControl" => "Cache-Control",
+        "Expires" => "Expires",
+        "ServerSideEncryption" => "x-oss-server-side-encryption",
+        "Metadata" => "x-oss-metadata-directive",
+        "ACL" => "x-oss-object-acl",
+        "ContentType" => "Content-Type",
+        "ContentDisposition" => "Content-Disposition",
+        "ContentLanguage" => "response-content-language",
+        "ContentEncoding" => "Content-Encoding",
     ];
 
     /**
@@ -75,12 +75,16 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         $options = $this->getOptionsFromConfig($config);
 
         $result = $this->client->putObject($this->bucket, $object, $contents, $options);
+        !isset($result["date"]) && $result["date"] = date("Y-m-d H:i:s");
+        !isset($result["oss-requestheaders"]["Content-Length"]) && $result["oss-requestheaders"]["Content-Length"] = strlen($contents);
+        !isset($result["oss-requestheaders"]["Content-Type"]) && $result["oss-requestheaders"]["Content-Type"] = "";
+
         return [
-            'type' => 'file',
-            'path' => $path,
-            'timestamp'=>strtotime($result['date']),
-            'size'=>intval($result['oss-requestheaders']['Content-Length']),
-            'mimetype'=>$result['oss-requestheaders']['Content-Type']
+            "type" => "file",
+            "path" => $path,
+            "timestamp" => strtotime($result["date"]),
+            "size" => intval($result["oss-requestheaders"]["Content-Length"]),
+            "mimetype" => $result["oss-requestheaders"]["Content-Type"]
         ];
     }
 
@@ -132,10 +136,10 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 
         $objects = [];
         foreach ($list as $val) {
-            if ($val['type'] === 'dir') {
-                $path = rtrim($val['path'], '/') . '/';
+            if ($val["type"] === "dir") {
+                $path = rtrim($val["path"], "/") . "/";
             } else {
-                $path = $val['path'];
+                $path = $val["path"];
             }
 
             $objects[] = $this->applyPathPrefix($path);
@@ -155,8 +159,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 
         $this->client->createObjectDir($this->bucket, $object, $options);
         return [
-            'type' => 'dir',
-            'path' => $dirname
+            "type" => "dir",
+            "path" => $dirname
         ];
     }
 
@@ -169,7 +173,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         $acl = $this->visibilityToAcl($visibility);
 
         $this->client->putObjectAcl($this->bucket, $object, $acl, $this->options);
-        return true;
+        return [
+            "visibility" => $visibility
+        ];
     }
 
     /**
@@ -191,30 +197,30 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 
         $contents = $this->client->getObject($this->bucket, $object, $this->options);
         return [
-            'type'=>'file',
-            'path' => $path,
-            'contents' => $contents
+            "type" => "file",
+            "path" => $path,
+            "contents" => $contents
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function listContents($directory = '', $recursive = false)
+    public function listContents($directory = "", $recursive = false)
     {
-        $directory = $this->applyPathPrefix(rtrim($directory, '/').'/');
+        $directory = $this->applyPathPrefix(rtrim($directory, "/")."/");
 
         $options = array_merge([
-            'delimiter' => '/',
-            'max-keys' => 1000,
-            'marker' => '',
+            "delimiter" => "/",
+            "max-keys" => 1000,
+            "marker" => "",
         ], $this->options, [
-            'prefix' => $directory
+            "prefix" => $directory
         ]);
 
         $result = [];
 
-        while(true){
+        while (true) {
             $listObjectInfo = $this->client->listObjects($this->bucket, $options);
 
             $objectList = $listObjectInfo->getObjectList();
@@ -224,38 +230,44 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             if (!empty($objectList)) {
                 foreach ($objectList as $objectInfo) {
                     $result[] = [
-                        'type'      => 'file',
-                        'path'      => $this->removePathPrefix($objectInfo->getKey()),
-                        'size'      => $objectInfo->getSize(),
-                        'timestamp'=> strtotime($objectInfo->getLastModified())
+                        "type" => "file",
+                        "path" => $this->removePathPrefix($objectInfo->getKey()),
+                        "size" => $objectInfo->getSize(),
+                        "timestamp" => strtotime($objectInfo->getLastModified())
                     ];
                 }
             }
 
             if (!empty($prefixList)) {
                 foreach ($prefixList as $prefixInfo) {
-                    $nextDirectory = rtrim($prefixInfo->getPrefix(), '/').'/';
-                    if($nextDirectory == $directory) continue;
+                    $nextDirectory = rtrim($prefixInfo->getPrefix(), "/")."/";
+                    if ($nextDirectory == $directory) {
+                        continue;
+                    }
                     $result[] = [
-                        'type'      => 'dir',
-                        'path'      => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), '/').'/'),
-                        'size'      => 0,
-                        'timestamp' => 0
+                        "type" => "dir",
+                        "path" => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), "/")."/"),
+                        "size" => 0,
+                        "timestamp" => 0
                     ];
                 }
             }
 
-            if($recursive){
-                foreach( $prefixList as $prefixInfo){
-                    $nextDirectory = rtrim($prefixInfo->getPrefix(), '/').'/';
-                    if($nextDirectory == $directory) continue;
-                    $nextResult  =  $this->listContents( $nextDirectory, $recursive);
-                    $result = array_merge($result,$nextResult);
+            if ($recursive) {
+                foreach ($prefixList as $prefixInfo) {
+                    $nextDirectory = rtrim($prefixInfo->getPrefix(), "/")."/";
+                    if ($nextDirectory == $directory) {
+                        continue;
+                    }
+                    $nextResult = $this->listContents($nextDirectory, $recursive);
+                    $result = array_merge($result, $nextResult);
                 }
             }
 
-            if ($nextMarker === "") break;
-            $options['marker'] = $nextMarker;
+            if ($nextMarker === "") {
+                break;
+            }
+            $options["marker"] = $nextMarker;
         }
 
         return $result;
@@ -270,11 +282,11 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 
         $result = $this->client->getObjectMeta($this->bucket, $object, $this->options);
         return [
-            'type' => 'file',
-            'path' => $path,
-            'size' => intval($result['content-length']),
-            'timestamp'=>strtotime($result['last-modified']),
-            'mimetype' => $result['content-type'],
+            "type" => "file",
+            "path" => $path,
+            "size" => intval($result["content-length"]),
+            "timestamp" => strtotime($result["last-modified"]),
+            "mimetype" => $result["content-type"],
         ];
     }
 
@@ -283,7 +295,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     public function getSize($path)
     {
-        return isset($this->getMetadata($path)['size']) ? ['size'=>$this->getMetadata($path)['size']] : false;
+        return isset($this->getMetadata($path)["size"]) ? ["size" => $this->getMetadata($path)["size"]] : false;
     }
 
     /**
@@ -291,7 +303,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     public function getMimetype($path)
     {
-        return isset($this->getMetadata($path)['mimetype']) ? ['mimetype'=>$this->getMetadata($path)['mimetype']] : false;
+        return isset($this->getMetadata($path)["mimetype"]) ? ["mimetype" => $this->getMetadata($path)["mimetype"]] : false;
     }
 
     /**
@@ -299,7 +311,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     public function getTimestamp($path)
     {
-        return isset($this->getMetadata($path)['timestamp']) ? ['timestamp'=>$this->getMetadata($path)['timestamp']] : false;
+        return isset($this->getMetadata($path)["timestamp"]) ? ["timestamp" => $this->getMetadata($path)["timestamp"]] : false;
     }
 
     /**
@@ -312,7 +324,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         $acl = $this->client->getObjectAcl($this->bucket, $object, $this->options);
         $visibility = $this->aclToVisibility($acl);
         return [
-            'visibility' => $visibility
+            "visibility" => $visibility
         ];
     }
 
@@ -324,7 +336,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
     {
         $options = [];
 
-        if ($visibility = $config->get('visibility')) {
+        if ($visibility = $config->get("visibility")) {
             $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibilityToAcl($visibility);
         }
 
@@ -388,5 +400,23 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
     {
         $this->options = $options;
         return $this;
+    }
+
+    /**
+     * @param string $accessId
+     * @param string $accessKey
+     * @param string $endpoint
+     * @param string $bucket
+     * @param string|null $prefix
+     * @param array $options
+     * @return static
+     * @throws \OSS\Core\OssException
+     */
+    public static function create($accessId, $accessKey, $endpoint, $bucket, $prefix = null, array $options = [])
+    {
+        $isCName = isset($options['is_cname']) ? $options['is_cname'] : false;
+        $securityToken = isset($options['security_token']) ? $options['security_token'] : null;
+        $requestProxy = isset($options['request_proxy']) ? $options['request_proxy'] : null;
+        return new static(new OssClient($accessId, $accessKey, $endpoint, $isCName, $securityToken, $requestProxy),$bucket,$prefix,$options);
     }
 }
