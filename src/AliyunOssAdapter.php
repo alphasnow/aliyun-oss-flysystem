@@ -336,6 +336,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
     {
         $options = [];
 
+        if ($headers = $config->get(OssClient::OSS_HEADERS)) {
+            $options[OssClient::OSS_HEADERS] = $headers;
+        }
         if ($visibility = $config->get("visibility")) {
             $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibilityToAcl($visibility);
         }
@@ -347,7 +350,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             $options[$map] = $config->get($meta);
         }
 
-        return $options;
+        return array_merge($this->options, $options);
     }
 
     /**
