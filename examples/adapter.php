@@ -1,16 +1,15 @@
 <?php
+
 require __DIR__.'/../vendor/autoload.php';
 
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 
-$accessId = '******';
-$accessKey = '******';
-$endpoint = 'endpoint.com'; // example: oss-cn-shanghai.aliyuncs.com
-$bucket = 'bucket'; // example: static-files
+$env = is_file(__DIR__.'/env.ini') ? __DIR__.'/env.ini' : __DIR__.'/env.example.ini' ;
+$config = parse_ini_file($env);
 
-$adapter = AliyunOssAdapter::create($accessKey, $accessKey, $endpoint, $bucket);
-$flysystem = new Filesystem($adapter);
+$adapter = AliyunOssAdapter::create($config['access_id'], $config['access_key'], $config['endpoint'], $config['bucket'], $config['prefix'], $config['options']);
+$flysystem = new Filesystem($adapter, ["disable_asserts" => true]);
 
 $flysystem->write('file.md', 'contents');
 $flysystem->writeStream('file.md', fopen('file.md', 'r'));
@@ -29,10 +28,20 @@ $flysystem->createDir('foo/');
 $flysystem->deleteDir('foo/');
 $flysystem->listContents();
 
-$flysystem->setVisibility('foo/bar','public');
+$flysystem->setVisibility('foo/bar', 'public');
 $flysystem->getVisibility('foo/bar');
 
 $flysystem->getMetadata('file.md');
 $flysystem->getSize('file.md');
 $flysystem->getMimetype('file.md');
 $flysystem->getTimestamp('file.md');
+
+$flysystem->write('file.md', 'contents', [
+    "options" => ["length" => 8]
+]);
+$flysystem->write('file.md', 'contents', [
+    "headers" => ["Content-Disposition" => "attachment; filename=file.md"]
+]);
+$flysystem->write('file.md', 'contents', [
+    "visibility" => "private"
+]);

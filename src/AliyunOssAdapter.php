@@ -38,21 +38,6 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
     protected $options = [];
 
     /**
-     * @var array
-     */
-    protected static $metaMap = [
-        "CacheControl" => "Cache-Control",
-        "Expires" => "Expires",
-        "ServerSideEncryption" => "x-oss-server-side-encryption",
-        "Metadata" => "x-oss-metadata-directive",
-        "ACL" => "x-oss-object-acl",
-        "ContentType" => "Content-Type",
-        "ContentDisposition" => "Content-Disposition",
-        "ContentLanguage" => "response-content-language",
-        "ContentEncoding" => "Content-Encoding",
-    ];
-
-    /**
      * @param OssClient $client
      * @param string $bucket
      * @param string $prefix
@@ -334,20 +319,14 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     protected function getOptionsFromConfig(Config $config)
     {
-        $options = [];
+        $options = $config->get('options', []);
 
-        if ($headers = $config->get(OssClient::OSS_HEADERS)) {
+        if ($headers = $config->get('headers')) {
             $options[OssClient::OSS_HEADERS] = $headers;
         }
+
         if ($visibility = $config->get("visibility")) {
             $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibilityToAcl($visibility);
-        }
-
-        foreach (static::$metaMap as $meta => $map) {
-            if (!$config->has($meta)) {
-                continue;
-            }
-            $options[$map] = $config->get($meta);
         }
 
         return array_merge($this->options, $options);
