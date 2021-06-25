@@ -62,7 +62,7 @@ $flysystem->getTimestamp('file.md');
 ```
 
 ### Options
-```
+```php
 $flysystem->write('file.md', 'contents', [
     "options" => ["length" => 8]
 ]);
