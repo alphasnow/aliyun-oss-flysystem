@@ -72,6 +72,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             "mimetype" => $result["oss-requestheaders"]["Content-Type"]
         ];
     }
+
     /**
      * {@inheritdoc}
      */
