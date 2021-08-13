@@ -72,6 +72,27 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             "mimetype" => $result["oss-requestheaders"]["Content-Type"]
         ];
     }
+    /**
+     * {@inheritdoc}
+     */
+    public function writeStream($path, $resource, Config $config)
+    {
+        $object = $this->applyPathPrefix($path);
+        $options = $this->getOptionsFromConfig($config);
+
+        $result = $this->client->uploadStream($this->bucket, $object, $resource, $options);
+        !isset($result["date"]) && $result["date"] = date("Y-m-d H:i:s");
+        !isset($result["oss-requestheaders"]["Content-Length"]) && $result["oss-requestheaders"]["Content-Length"] = fstat($resource)['size'];
+        !isset($result["oss-requestheaders"]["Content-Type"]) && $result["oss-requestheaders"]["Content-Type"] = "";
+
+        return [
+            "type" => "file",
+            "path" => $path,
+            "timestamp" => strtotime($result["date"]),
+            "size" => intval($result["oss-requestheaders"]["Content-Length"]),
+            "mimetype" => $result["oss-requestheaders"]["Content-Type"]
+        ];
+    }
 
     /**
      * {@inheritdoc}
@@ -79,6 +100,14 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
     public function update($path, $contents, Config $config)
     {
         return $this->write($path, $contents, $config);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function updateStream($path, $resource, Config $config)
+    {
+        return $this->writeStream($path, $resource, $config);
     }
 
     /**
