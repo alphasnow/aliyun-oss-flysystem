@@ -4,7 +4,6 @@ namespace AlphaSnow\Flysystem\AliyunOss;
 
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\CanOverwriteFiles;
-use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\Adapter\Polyfill\StreamedTrait;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
@@ -19,7 +18,6 @@ use OSS\OssClient;
  */
 class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 {
-    use NotSupportingVisibilityTrait;
     use StreamedTrait;
 
     /**
