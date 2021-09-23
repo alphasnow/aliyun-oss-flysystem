@@ -1,18 +1,22 @@
+build:
+    nodes:
+        analysis:
+            project_setup:
+                override:
+                    - 'true'
+            tests:
+                override:
+                    - php-scrutinizer-run
+                    -
+                        command: phpcs-run
+                        use_website_config: true
 filter:
     excluded_paths:
         - 'tests/*'
 checks:
     php: true
 coding_style:
-    php: {  }
-build:
-    environment:
-        php:
-            version: 7.2
-    tests:
-        override:
-            -
-                command: 'vendor/bin/phpunit --coverage-clover=some-file'
-                coverage:
-                    file: 'some-file'
-                    format: 'clover'
+    php:
+        spaces:
+            around_operators:
+                concatenation: true
