@@ -5,7 +5,7 @@ require __DIR__.'/../vendor/autoload.php';
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 
-$env = is_file(__DIR__.'/env.ini') ? __DIR__.'/env.ini' : __DIR__.'/env.example.ini' ;
+$env = is_file(__DIR__ . '/.env') ? __DIR__ . '/.env' : __DIR__ . '/.env.example';
 $config = parse_ini_file($env);
 
 $adapter = AliyunOssAdapter::create($config['access_id'], $config['access_key'], $config['endpoint'], $config['bucket'], $config['prefix'], $config['options']);
@@ -46,3 +46,6 @@ $result = $flysystem->write('file.md', 'contents', [
 $result = $flysystem->write('file.md', 'contents', [
     "visibility" => "private"
 ]);
+
+$result = $flysystem->getMetadata('none.md');
+$exception = $flysystem->getAdapter()->getException();

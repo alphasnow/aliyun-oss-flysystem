@@ -26,8 +26,16 @@ composer require "alphasnow/aliyun-oss-flysystem" -vvv
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 
-$env = is_file(__DIR__.'/env.ini') ? __DIR__.'/env.ini' : __DIR__.'/env.example.ini' ;
-$config = parse_ini_file($env);
+$config = [
+    "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey 
+    "access_key"=> "PkT4F********************Bl9or",  // Required, AccessKey Key Secret
+    "endpoint"  => "oss-cn-shanghai.aliyuncs.com",    // Required, Endpoint
+    "bucket"    => "my-storage"                       // Required, Bucket
+    "prefix"    => "",
+    "options"   => [
+        "checkmd5" => false
+    ]
+];
 
 $adapter = AliyunOssAdapter::create($config['access_id'], $config['access_key'], $config['endpoint'], $config['bucket'], $config['prefix'], $config['options']);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true]);
@@ -73,6 +81,12 @@ $flysystem->write('file.md', 'contents', [
 $flysystem->write('file.md', 'contents', [
     "visibility" => "private"
 ]);
+```
+
+### Exception
+```php
+$flysystem->getMetadata('none.md');
+$exception = $flysystem->getAdapter()->getException();
 ```
 
 ## License
