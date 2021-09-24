@@ -37,15 +37,16 @@ $flysystem = new Filesystem($adapter, ["disable_asserts" => true]);
 ```php
 $flysystem->write('file.md', 'contents');
 $flysystem->writeStream('file.md', fopen('file.md', 'r'));
-
 $flysystem->update('file.md', 'new contents');
 $flysystem->updateStream('file.md', fopen('file.md', 'r'));
 
-$flysystem->rename('foo.md', 'bar.md');
-$flysystem->copy('foo.md', 'baz.md');
-$flysystem->delete('file.md');
+$flysystem->copy('file.md', 'baz.md');
+$flysystem->rename('baz.md', 'bar.md');
+$flysystem->delete('bar.md');
 $flysystem->has('file.md');
+
 $flysystem->read('file.md');
+$flysystem->readStream('file.md');
 $flysystem->readAndDelete('file.md');
 
 $flysystem->createDir('foo/');
