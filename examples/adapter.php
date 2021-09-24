@@ -49,5 +49,5 @@ $result = $flysystem->write('file.md', 'contents', [
     "visibility" => "private"
 ]);
 
-$result = $flysystem->getMetadata('none.md');
-$exception = $flysystem->getAdapter()->getException();
+//$result = $flysystem->getMetadata('none.md');
+//$exception = $flysystem->getAdapter()->getException();

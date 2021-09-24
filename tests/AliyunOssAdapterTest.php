@@ -41,12 +41,11 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testWrite($adapter, $client)
     {
-        $client->allows([
-            "putObject" => ["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "7","Content-Type" => "application/octet-stream"]]
-        ]);
+        $client->shouldReceive("putObject")
+            ->andReturn(["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "7","Content-Type" => "application/octet-stream"]])
+            ->once();
 
         $result = $adapter->write("foo/bar.md", "content", new Config());
-
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
@@ -54,6 +53,13 @@ class AliyunOssAdapterTest extends TestCase
             "size" => 7,
             "mimetype" => "application/octet-stream",
         ], $result);
+
+        $client->shouldReceive("putObject")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $result = $adapter->write("foo/bar.md", "content", new Config());
+        $this->assertFalse($result);
     }
 
     /**
@@ -64,9 +70,9 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testWriteStream($adapter, $client)
     {
-        $client->allows([
-            "uploadStream" => ["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]]
-        ]);
+        $client->shouldReceive("uploadStream")
+            ->andReturn(["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]])
+            ->once();
 
         $fp = fopen('php://temp', 'w+');
         fwrite($fp, "content");
@@ -80,6 +86,16 @@ class AliyunOssAdapterTest extends TestCase
             "size" => 7,
             "mimetype" => "application/octet-stream",
         ], $result);
+
+        $client->shouldReceive("uploadStream")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $fp = fopen('php://temp', 'w+');
+        fwrite($fp, "content");
+        $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
+        fclose($fp);
+        $this->assertFalse($result);
     }
 
     /**
