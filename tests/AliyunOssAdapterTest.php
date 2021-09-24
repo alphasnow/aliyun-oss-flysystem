@@ -5,6 +5,7 @@ namespace AlphaSnow\Flysystem\AliyunOss\Tests;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 use League\Flysystem\Config;
 use Mockery\MockInterface;
+use OSS\Core\OssException;
 use OSS\Model\ObjectInfo;
 use OSS\Model\PrefixInfo;
 use OSS\OssClient;
@@ -100,6 +101,32 @@ class AliyunOssAdapterTest extends TestCase
             "path" => "foo/bar.md",
             "timestamp" => 1623292940,
             "size" => 6,
+            "mimetype" => "application/octet-stream",
+        ], $result);
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunOssAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testUpdateStream($adapter, $client)
+    {
+        $client->allows([
+            "uploadStream" => ["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]]
+        ]);
+
+        $fp = fopen('php://temp', 'w+');
+        fwrite($fp, "content");
+        $result = $adapter->updateStream("foo/bar.md", $fp, new Config());
+        fclose($fp);
+
+        $this->assertSame([
+            "type" => "file",
+            "path" => "foo/bar.md",
+            "timestamp" => 1623292940,
+            "size" => 7,
             "mimetype" => "application/octet-stream",
         ], $result);
     }
@@ -260,6 +287,22 @@ class AliyunOssAdapterTest extends TestCase
             "path" => "foo/bar.md",
             "contents" => "content"
         ], $result);
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunOssAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testReadStream($adapter, $client)
+    {
+        $client->shouldReceive("getObject")
+            ->andReturn(null);
+
+        $result = $adapter->readStream("foo/bar.md");
+
+        $this->assertTrue(is_resource($result['stream']));
     }
 
     /**
@@ -431,5 +474,35 @@ class AliyunOssAdapterTest extends TestCase
         $adapter->setOptions($options);
 
         $this->assertSame($options, $adapter->getOptions());
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunOssAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testGetException($adapter,$client)
+    {
+        $errorException = new OssException('error');
+        $client->shouldReceive("getObject")
+            ->andThrow($errorException);
+
+        $result = $adapter->read('none.md');
+        $exception = $adapter->getException();
+
+        $this->assertFalse($result);
+        $this->assertSame($errorException,$exception);
+    }
+
+    public function testCreate()
+    {
+        $accessId = getenv("ALIYUN_OSS_ACCESS_ID");
+        $accessKey = getenv("ALIYUN_OSS_ACCESS_KEY");
+        $bucket = getenv("ALIYUN_OSS_BUCKET");
+        $endpoint = getenv("ALIYUN_OSS_ENDPOINT");
+
+        $adapter = AliyunOssAdapter::create($accessId,$accessKey,$bucket,$endpoint);
+        $this->assertInstanceOf(AliyunOssAdapter::class,$adapter);
     }
 }
