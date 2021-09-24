@@ -482,7 +482,7 @@ class AliyunOssAdapterTest extends TestCase
      * @param AliyunOssAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testGetException($adapter,$client)
+    public function testGetException($adapter, $client)
     {
         $errorException = new OssException('error');
         $client->shouldReceive("getObject")
@@ -492,7 +492,7 @@ class AliyunOssAdapterTest extends TestCase
         $exception = $adapter->getException();
 
         $this->assertFalse($result);
-        $this->assertSame($errorException,$exception);
+        $this->assertSame($errorException, $exception);
     }
 
     public function testCreate()
@@ -502,7 +502,7 @@ class AliyunOssAdapterTest extends TestCase
         $bucket = getenv("ALIYUN_OSS_BUCKET");
         $endpoint = getenv("ALIYUN_OSS_ENDPOINT");
 
-        $adapter = AliyunOssAdapter::create($accessId,$accessKey,$bucket,$endpoint);
-        $this->assertInstanceOf(AliyunOssAdapter::class,$adapter);
+        $adapter = AliyunOssAdapter::create($accessId, $accessKey, $bucket, $endpoint);
+        $this->assertInstanceOf(AliyunOssAdapter::class, $adapter);
     }
 }
