@@ -107,9 +107,8 @@ class AliyunOssAdapterTest extends TestCase
     public function testUpdate($adapter, $client)
     {
         $client->shouldReceive("putObject")
-            ->andReturn(
-                ["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "6","Content-Type" => "application/octet-stream"]]
-            );
+            ->andReturn(["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "6","Content-Type" => "application/octet-stream"]])
+            ->once();
 
         $result = $adapter->update("foo/bar.md", "update", new Config());
         $this->assertSame([
@@ -119,6 +118,13 @@ class AliyunOssAdapterTest extends TestCase
             "size" => 6,
             "mimetype" => "application/octet-stream",
         ], $result);
+
+        $client->shouldReceive("putObject")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $result = $adapter->update("foo/bar.md", "update", new Config());
+        $this->assertFalse($result);
     }
 
     /**
@@ -129,9 +135,9 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testUpdateStream($adapter, $client)
     {
-        $client->allows([
-            "uploadStream" => ["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]]
-        ]);
+        $client->shouldReceive("uploadStream")
+            ->andReturn(["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]])
+            ->once();
 
         $fp = fopen('php://temp', 'w+');
         fwrite($fp, "content");
@@ -145,6 +151,16 @@ class AliyunOssAdapterTest extends TestCase
             "size" => 7,
             "mimetype" => "application/octet-stream",
         ], $result);
+
+        $client->shouldReceive("uploadStream")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $fp = fopen('php://temp', 'w+');
+        fwrite($fp, "content");
+        $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
+        fclose($fp);
+        $this->assertFalse($result);
     }
 
     /**
@@ -155,13 +171,19 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testRename($adapter, $client)
     {
-        $client->allows([
-            "copyObject" => null,
-            "deleteObject" => null
-        ]);
+        $client->shouldReceive("copyObject","deleteObject")
+            ->andReturn(null)
+            ->once();
 
         $result = $adapter->rename("foo/bar.md", "foo/baz.md");
         $this->assertTrue($result);
+
+        $client->shouldReceive("copyObject","deleteObject")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $result = $adapter->rename("foo/bar.md", "foo/baz.md");
+        $this->assertFalse($result);
     }
 
     /**
@@ -172,12 +194,19 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testCopy($adapter, $client)
     {
-        $client->allows([
-            "copyObject" => null
-        ]);
+        $client->shouldReceive("copyObject")
+            ->andReturn(null)
+            ->once();
 
         $result = $adapter->copy("foo/bar.md", "foo/baz.md");
         $this->assertTrue($result);
+
+        $client->shouldReceive("copyObject")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $result = $adapter->copy("foo/bar.md", "foo/baz.md");
+        $this->assertFalse($result);
     }
 
     /**
@@ -188,12 +217,19 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testDelete($adapter, $client)
     {
-        $client->allows([
-            "deleteObject" => null
-        ]);
+        $client->shouldReceive("deleteObject")
+            ->andReturn(null)
+            ->once();
 
         $result = $adapter->delete("foo/bar.md");
         $this->assertTrue($result);
+
+        $client->shouldReceive("deleteObject")
+            ->andThrow(new OssException("error"))
+            ->once();
+
+        $result = $adapter->delete("foo/bar.md");
+        $this->assertFalse($result);
     }
 
     /**
@@ -260,14 +296,21 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testSetVisibility($adapter, $client)
     {
-        $client->allows([
-            "putObjectAcl" => null
-        ]);
+        $client->shouldReceive("putObjectAcl")
+            ->andReturn(null)
+            ->once();
 
         $result = $adapter->setVisibility("foo/bar.md", "public");
         $this->assertSame([
             "visibility" => "public"
         ], $result);
+
+        $client->shouldReceive("putObjectAcl")
+            ->andThrow(new OssException("error"))
+            ->once();
+        
+        $result = $adapter->setVisibility("foo/bar.md", "public");
+        $this->assertFalse($result);
     }
 
     /**
