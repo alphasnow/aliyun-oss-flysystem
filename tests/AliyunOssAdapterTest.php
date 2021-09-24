@@ -171,14 +171,14 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testRename($adapter, $client)
     {
-        $client->shouldReceive("copyObject","deleteObject")
+        $client->shouldReceive("copyObject", "deleteObject")
             ->andReturn(null)
             ->once();
 
         $result = $adapter->rename("foo/bar.md", "foo/baz.md");
         $this->assertTrue($result);
 
-        $client->shouldReceive("copyObject","deleteObject")
+        $client->shouldReceive("copyObject", "deleteObject")
             ->andThrow(new OssException("error"))
             ->once();
 
@@ -308,7 +308,7 @@ class AliyunOssAdapterTest extends TestCase
         $client->shouldReceive("putObjectAcl")
             ->andThrow(new OssException("error"))
             ->once();
-        
+
         $result = $adapter->setVisibility("foo/bar.md", "public");
         $this->assertFalse($result);
     }
