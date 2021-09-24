@@ -221,9 +221,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         $object = $this->applyPathPrefix($path);
 
         $stream = fopen('php://temp', 'w+b');
-        $options = array(
-            OssClient::OSS_FILE_DOWNLOAD => $stream,
-        );
+        $options = array_merge($this->options, [OssClient::OSS_FILE_DOWNLOAD => $stream]);
+
         $this->client->getObject($this->bucket, $object, $options);
         rewind($stream);
 
