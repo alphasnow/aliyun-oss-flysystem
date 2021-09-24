@@ -343,10 +343,10 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             }
 
             $nextMarker = $listObjectInfo->getNextMarker();
+            $options["marker"] = $nextMarker;
             if ($nextMarker === "") {
                 break;
             }
-            $options["marker"] = $nextMarker;
         }
 
         return $result;
