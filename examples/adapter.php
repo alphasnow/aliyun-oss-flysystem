@@ -7,6 +7,7 @@ use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 
 $env = is_file(__DIR__ . '/.env') ? __DIR__ . '/.env' : __DIR__ . '/.env.example';
 $config = parse_ini_file($env);
+!isset($config['options']) && $config['options'] = [];
 
 $adapter = AliyunOssAdapter::create($config['access_id'], $config['access_key'], $config['endpoint'], $config['bucket'], $config['prefix'], $config['options']);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true]);
@@ -27,7 +28,8 @@ $result = $flysystem->readStream('file.md');
 
 $result = $flysystem->createDir('foo/');
 $result = $flysystem->deleteDir('foo/');
-$result = $flysystem->listContents();
+$result = $flysystem->listContents('/');
+$result = $flysystem->listContents('/',true);
 
 $result = $flysystem->setVisibility('file.md', 'public');
 $result = $flysystem->getVisibility('file.md');

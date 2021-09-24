@@ -41,7 +41,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testWrite($adapter, $client)
     {
         $client->allows([
-            "putObject" => ["date" => "Thu, 10 Jun 2021 02:42:20 GMT","oss-requestheaders" => ["Content-Length" => "7","Content-Type" => "application/octet-stream"]]
+            "putObject" => ["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "7","Content-Type" => "application/octet-stream"]]
         ]);
 
         $result = $adapter->write("foo/bar.md", "content", new Config());
@@ -64,7 +64,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testWriteStream($adapter, $client)
     {
         $client->allows([
-            "uploadStream" => ["date" => "Thu, 10 Jun 2021 02:42:20 GMT","oss-requestheaders" => ["Content-Length" => "7","Content-Type" => "application/octet-stream"]]
+            "uploadStream" => ["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]]
         ]);
 
         $fp = fopen('php://temp', 'w+');
@@ -91,7 +91,7 @@ class AliyunOssAdapterTest extends TestCase
     {
         $client->shouldReceive("putObject")
             ->andReturn(
-                ["date" => "Thu, 10 Jun 2021 02:42:20 GMT","oss-requestheaders" => ["Content-Length" => "6","Content-Type" => "application/octet-stream"]]
+                ["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "6","Content-Type" => "application/octet-stream"]]
             );
 
         $result = $adapter->update("foo/bar.md", "update", new Config());
@@ -313,8 +313,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetMetadata($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["content-length" => "7","last-modified" => "Thu, 10 Jun 2021 02:42:20 GMT","content-type" => "application/octet-stream"]);
-        $file = ["timestamp" => strtotime("Thu, 10 Jun 2021 02:42:20 GMT")];
+            ->andReturn(["info" => ["download_content_length" => 7,"filetime" => 1623292940,"content_type" => "application/octet-stream"]]);
 
         $result = $adapter->getMetadata("foo/bar.md");
         $this->assertSame([
@@ -335,7 +334,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetSize($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["content-length" => "7","last-modified" => "Thu, 10 Jun 2021 02:42:20 GMT","content-type" => "application/octet-stream"]);
+            ->andReturn(["info" => ["download_content_length" => 7,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
 
         $result = $adapter->getSize("foo/bar.md");
         $this->assertSame([
@@ -352,7 +351,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetMimetype($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["content-length" => "7","last-modified" => "Thu, 10 Jun 2021 02:42:20 GMT","content-type" => "application/octet-stream"]);
+            ->andReturn(["info" => ["download_content_length" => 7.0,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
 
         $result = $adapter->getMimetype("foo/bar.md");
         $this->assertSame([
@@ -369,12 +368,11 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetTimestamp($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["content-length" => "7","last-modified" => "Thu, 10 Jun 2021 02:42:20 GMT","content-type" => "application/octet-stream"]);
-        $file = ["timestamp" => strtotime("Thu, 10 Jun 2021 02:42:20 GMT")];
+            ->andReturn(["info" => ["download_content_length" => 7.0,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
 
         $result = $adapter->getTimestamp("foo/bar.md");
         $this->assertSame([
-            "timestamp" => $file["timestamp"],
+            "timestamp" => 1623292940,
         ], $result);
     }
 

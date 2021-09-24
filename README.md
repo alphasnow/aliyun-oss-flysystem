@@ -33,7 +33,10 @@ $config = [
     "bucket"    => "my-storage"                       // Required, Bucket
     "prefix"    => "",
     "options"   => [
-        "checkmd5" => false
+        "is_cname"       => false,
+        "security_token" => null,
+        "request_proxy"  => null,
+        "checkmd5"       => false
     ]
 ];
 
@@ -59,7 +62,8 @@ $flysystem->readAndDelete('file.md');
 
 $flysystem->createDir('foo/');
 $flysystem->deleteDir('foo/');
-$flysystem->listContents();
+$result = $flysystem->listContents('/');
+$result = $flysystem->listContents('/',true);
 
 $flysystem->setVisibility('foo/bar','public');
 $flysystem->getVisibility('foo/bar');

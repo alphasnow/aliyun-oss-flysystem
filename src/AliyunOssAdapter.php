@@ -18,6 +18,8 @@ use OSS\OssClient;
  */
 class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 {
+    public const OSS_REQUEST_HEADERS = "oss-requestheaders";
+
     /**
      * @var OssClient
      */
@@ -67,15 +69,12 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             return false;
         }
 
-        !isset($result["date"]) && $result["date"] = date("Y-m-d H:i:s");
-        !isset($result["oss-requestheaders"]["Content-Length"]) && $result["oss-requestheaders"]["Content-Length"] = strlen($contents);
-        !isset($result["oss-requestheaders"]["Content-Type"]) && $result["oss-requestheaders"]["Content-Type"] = "";
         return [
             "type" => "file",
             "path" => $path,
-            "timestamp" => strtotime($result["date"]),
-            "size" => intval($result["oss-requestheaders"]["Content-Length"]),
-            "mimetype" => $result["oss-requestheaders"]["Content-Type"]
+            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
+            "size" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_LENGTH]) ? intval($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_LENGTH]) : 0,
+            "mimetype" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE]) ? $result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE] : ""
         ];
     }
 
@@ -94,15 +93,12 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             return false;
         }
 
-        !isset($result["date"]) && $result["date"] = date("Y-m-d H:i:s");
-        !isset($result["oss-requestheaders"]["Content-Length"]) && $result["oss-requestheaders"]["Content-Length"] = fstat($resource)['size'];
-        !isset($result["oss-requestheaders"]["Content-Type"]) && $result["oss-requestheaders"]["Content-Type"] = "";
         return [
             "type" => "file",
             "path" => $path,
-            "timestamp" => strtotime($result["date"]),
-            "size" => intval($result["oss-requestheaders"]["Content-Length"]),
-            "mimetype" => $result["oss-requestheaders"]["Content-Type"]
+            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
+            "size" => isset($result["info"]["upload_content_length"]) ? intval($result["info"]["upload_content_length"]) : 0,
+            "mimetype" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE]) ? $result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE] : ""
         ];
     }
 
@@ -268,7 +264,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
     {
         $object = $this->applyPathPrefix($path);
 
-        $stream = fopen('php://temp', 'w+b');
+        $stream = fopen("php://temp", "w+b");
         $options = array_merge($this->options, [OssClient::OSS_FILE_DOWNLOAD => $stream]);
         try {
             $this->client->getObject($this->bucket, $object, $options);
@@ -279,9 +275,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 
         rewind($stream);
         return [
-            'type' => 'file',
-            'path' => $path,
-            'stream' => $stream
+            "type" => "file",
+            "path" => $path,
+            "stream" => $stream
         ];
     }
 
@@ -306,11 +302,18 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             $listObjectInfo = $this->client->listObjects($this->bucket, $options);
 
             $objectList = $listObjectInfo->getObjectList();
-            $prefixList = $listObjectInfo->getPrefixList();
-            $nextMarker = $listObjectInfo->getNextMarker();
-
             if (!empty($objectList)) {
                 foreach ($objectList as $objectInfo) {
+                    if ($objectInfo->getSize() === 0 && $directory === $objectInfo->getKey()) {
+                        $result[] = [
+                            "type" => "dir",
+                            "path" => $this->removePathPrefix(rtrim($objectInfo->getKey(), "/")."/"),
+                            "size" => 0,
+                            "timestamp" => strtotime($objectInfo->getLastModified()),
+                        ];
+                        continue;
+                    }
+
                     $result[] = [
                         "type" => "file",
                         "path" => $this->removePathPrefix($objectInfo->getKey()),
@@ -320,32 +323,26 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
                 }
             }
 
-            if (!empty($prefixList)) {
-                foreach ($prefixList as $prefixInfo) {
-                    $nextDirectory = rtrim($prefixInfo->getPrefix(), "/")."/";
-                    if ($nextDirectory == $directory) {
-                        continue;
-                    }
+            $prefixList = $listObjectInfo->getPrefixList();
+            foreach ($prefixList as $prefixInfo) {
+                $nextDirectory = rtrim($prefixInfo->getPrefix(), "/")."/";
+                if ($nextDirectory == $directory) {
+                    continue;
+                }
+                if ($recursive) {
+                    $nextResult = $this->listContents($this->removePathPrefix($nextDirectory), $recursive);
+                    $result = array_merge($result, $nextResult);
+                } else {
                     $result[] = [
                         "type" => "dir",
-                        "path" => $this->removePathPrefix(rtrim($prefixInfo->getPrefix(), "/")."/"),
+                        "path" => $this->removePathPrefix($nextDirectory),
                         "size" => 0,
-                        "timestamp" => 0
+                        "timestamp" => 0,
                     ];
                 }
             }
 
-            if ($recursive) {
-                foreach ($prefixList as $prefixInfo) {
-                    $nextDirectory = rtrim($prefixInfo->getPrefix(), "/")."/";
-                    if ($nextDirectory == $directory) {
-                        continue;
-                    }
-                    $nextResult = $this->listContents($nextDirectory, $recursive);
-                    $result = array_merge($result, $nextResult);
-                }
-            }
-
+            $nextMarker = $listObjectInfo->getNextMarker();
             if ($nextMarker === "") {
                 break;
             }
@@ -372,9 +369,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         return [
             "type" => "file",
             "path" => $path,
-            "size" => intval($result["content-length"]),
-            "timestamp" => strtotime($result["last-modified"]),
-            "mimetype" => $result["content-type"],
+            "size" => isset($result["info"]["download_content_length"]) ? intval($result["info"]["download_content_length"]) : 0,
+            "timestamp" => isset($result["info"]["filetime"]) ? $result["info"]["filetime"] : 0,
+            "mimetype" => isset($result["info"]["content_type"]) ? $result["info"]["content_type"] : ""
         ];
     }
 
@@ -427,9 +424,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     protected function getOptionsFromConfig(Config $config)
     {
-        $options = $config->get('options', []);
+        $options = $config->get("options", []);
 
-        if ($headers = $config->get('headers')) {
+        if ($headers = $config->get("headers")) {
             $options[OssClient::OSS_HEADERS] = $headers;
         }
 
@@ -512,9 +509,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      */
     public static function create($accessId, $accessKey, $endpoint, $bucket, $prefix = null, array $options = [])
     {
-        $isCName = isset($options['is_cname']) ? $options['is_cname'] : false;
-        $securityToken = isset($options['security_token']) ? $options['security_token'] : null;
-        $requestProxy = isset($options['request_proxy']) ? $options['request_proxy'] : null;
+        $isCName = isset($options["is_cname"]) ? $options["is_cname"] : false;
+        $securityToken = isset($options["security_token"]) ? $options["security_token"] : null;
+        $requestProxy = isset($options["request_proxy"]) ? $options["request_proxy"] : null;
         return new static(new OssClient($accessId, $accessKey, $endpoint, $isCName, $securityToken, $requestProxy),$bucket,$prefix,$options);
     }
 }
