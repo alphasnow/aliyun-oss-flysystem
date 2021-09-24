@@ -4,13 +4,12 @@ namespace AlphaSnow\Flysystem\AliyunOss;
 
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\CanOverwriteFiles;
-use League\Flysystem\Adapter\Polyfill\StreamedTrait;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use OSS\OssClient;
 
 /**
- * Here are some examples of file meta data
+ * Here is some example file meta data
  * ["type"=>"file","path"=>"/foo/bar/qux.md","timestamp"=>1623289297,"size"=>1024]
  * ["type"=>"dir","path"=>"/foo/bar/","timestamp"=>0,"size"=>0]
  *
@@ -18,8 +17,6 @@ use OSS\OssClient;
  */
 class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 {
-    use StreamedTrait;
-
     /**
      * @var OssClient
      */
@@ -213,6 +210,27 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
             "type" => "file",
             "path" => $path,
             "contents" => $contents
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function readStream($path)
+    {
+        $object = $this->applyPathPrefix($path);
+
+        $stream = fopen('php://temp', 'w+b');
+        $options = array(
+            OssClient::OSS_FILE_DOWNLOAD => $stream,
+        );
+        $this->client->getObject($this->bucket, $object, $options);
+        rewind($stream);
+
+        return [
+            'type' => 'file',
+            'path' => $path,
+            'stream' => $stream
         ];
     }
 
