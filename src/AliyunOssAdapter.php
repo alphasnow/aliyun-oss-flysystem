@@ -269,6 +269,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
         try {
             $this->client->getObject($this->bucket, $object, $options);
         } catch (OssException $exception) {
+            fclose($stream);
             $this->exception = $exception;
             return false;
         }
