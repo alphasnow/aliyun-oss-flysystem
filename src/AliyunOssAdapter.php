@@ -16,9 +16,9 @@ use OSS\OssClient;
  *
  * @package AlphaSnow\Flysystem\AliyunOss
  */
-class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
+class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, AliyunOssAdapterInterface, AliyunOssFactoryInterface
 {
-    public const OSS_REQUEST_HEADERS = "oss-requestheaders";
+    const OSS_REQUEST_HEADERS = "oss-requestheaders";
 
     /**
      * @var OssClient
@@ -484,7 +484,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
      * @param array $options
      * @return $this
      */
-    public function setOptions($options)
+    public function setOptions(array $options)
     {
         $this->options = $options;
         return $this;

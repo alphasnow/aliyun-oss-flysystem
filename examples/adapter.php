@@ -29,7 +29,7 @@ $result = $flysystem->readStream('file.md');
 $result = $flysystem->createDir('foo/');
 $result = $flysystem->deleteDir('foo/');
 $result = $flysystem->listContents('/');
-$result = $flysystem->listContents('/',true);
+$result = $flysystem->listContents('/', true);
 
 $result = $flysystem->setVisibility('file.md', 'public');
 $result = $flysystem->getVisibility('file.md');
