@@ -2,9 +2,10 @@
 
 require __DIR__.'/../vendor/autoload.php';
 
+use OSS\OssClient;
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
-use OSS\OssClient;
+use AlphaSnow\Flysystem\AliyunOss\Plugins\AppendContent;
 
 $config = [
     "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey
@@ -21,16 +22,18 @@ is_file(__DIR__ . '/config.php') && $config = array_merge($config, require __DIR
 $client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
 $adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
+$flysystem->addPlugin(new AppendContent());
 
 $result = $flysystem->write('file.md', 'contents');
 $result = $flysystem->writeStream('file.md', fopen('file.md', 'r'));
 $result = $flysystem->update('file.md', 'new contents');
 $result = $flysystem->updateStream('file.md', fopen('file.md', 'r'));
+$result = $flysystem->appendContent('foo.md', 'contents', 0);
 
-$result = $flysystem->copy('file.md', 'baz.md');
+$result = $flysystem->copy('foo.md', 'baz.md');
 $result = $flysystem->rename('baz.md', 'bar.md');
 $result = $flysystem->delete('bar.md');
-$result = $flysystem->has('file.md');
+$result = $flysystem->has('bar.md');
 
 $result = $flysystem->read('file.md');
 $result = $flysystem->readStream('file.md');

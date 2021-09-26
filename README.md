@@ -25,9 +25,10 @@ composer require "alphasnow/aliyun-oss-flysystem" -vvv
 
 ### Initialize
 ```php
+use OSS\OssClient;
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
-use OSS\OssClient;
+use AlphaSnow\Flysystem\AliyunOss\Plugins\AppendContent;
 
 $config = [
     "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey
@@ -43,6 +44,7 @@ $config = [
 $client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
 $adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
+$flysystem->addPlugin(new AppendContent());
 ```
 
 ### Methods
@@ -51,11 +53,12 @@ $flysystem->write('file.md', 'contents');
 $flysystem->writeStream('file.md', fopen('file.md', 'r'));
 $flysystem->update('file.md', 'new contents');
 $flysystem->updateStream('file.md', fopen('file.md', 'r'));
+$flysystem->appendContent('foo.md', 'contents', 0);
 
-$flysystem->copy('file.md', 'baz.md');
+$flysystem->copy('foo.md', 'baz.md');
 $flysystem->rename('baz.md', 'bar.md');
 $flysystem->delete('bar.md');
-$flysystem->has('file.md');
+$flysystem->has('bar.md');
 
 $flysystem->read('file.md');
 $flysystem->readStream('file.md');
