@@ -7,9 +7,12 @@
 [![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem?ref=badge_shield)
 
-## Requirement
+## Compatibility
 
-- PHP >= 5.5.9
+| **flysystem**  |  **aliyun-oss-flysystem** |
+|---|---|
+| 1.0  | ^0.3  |
+| 1.1  | ^1.0  |
 
 ## Installation
 
