@@ -3,11 +3,29 @@
 namespace AlphaSnow\Flysystem\AliyunOss\Plugins;
 
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapterInterface;
+use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Plugin\AbstractPlugin;
 use League\Flysystem\Adapter\AbstractAdapter;
 
 class AppendContent extends AbstractPlugin
 {
+    /**
+     * @var AliyunOssAdapterInterface | AbstractAdapter
+     */
+    protected $adapter;
+
+    public function setFilesystem(FilesystemInterface $filesystem)
+    {
+        parent::setFilesystem($filesystem);
+
+        if ($filesystem instanceof Filesystem) {
+            $adapter = $filesystem->getAdapter();
+            if ($adapter instanceof AliyunOssAdapterInterface && $adapter instanceof AbstractAdapter) {
+                $this->adapter = $adapter;
+            }
+        }
+    }
     /**
      * @return string
      */
@@ -25,18 +43,13 @@ class AppendContent extends AbstractPlugin
      */
     public function handle($path, $content, $position = 0)
     {
-        /**
-         * @var $adapter AbstractAdapter|AliyunOssAdapterInterface
-         */
-        $adapter = $this->filesystem->getAdapter();
-
-        return $adapter->getClient()
+        return $this->adapter->getClient()
             ->appendObject(
-                $adapter->getBucket(),
-                $adapter->applyPathPrefix($path),
+                $this->adapter->getBucket(),
+                $this->adapter->applyPathPrefix($path),
                 $content,
                 $position,
-                $adapter->getOptions()
+                $this->adapter->getOptions()
             );
     }
 }
