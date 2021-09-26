@@ -17,14 +17,13 @@
     ],
     "require": {
         "php": ">=5.5.9",
-        "league/flysystem": "^1.0",
+        "league/flysystem": "~1.0.66",
         "aliyuncs/oss-sdk-php": "^2.4"
     },
     "require-dev": {
-        "mockery/mockery": "^1.0",
-        "phpunit/phpunit": "^6.0",
-        "friendsofphp/php-cs-fixer": "^2.16",
-        "phpstan/phpstan": "^0.12"
+        "mockery/mockery": "~0.9.11",
+        "friendsofphp/php-cs-fixer": "~2.2.20",
+        "phpunit/phpunit": "^4.8"
     },
     "autoload": {
         "psr-4": {

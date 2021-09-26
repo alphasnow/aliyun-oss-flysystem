@@ -2,7 +2,6 @@
 
 💾 Flysystem adapter for the Aliyun storage.
 
-[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Code Coverage](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/?branch=master)
 [![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
@@ -91,6 +90,10 @@ $flysystem->write('file.md', 'contents', [
 $flysystem->getMetadata('none.md');
 $exception = $flysystem->getAdapter()->getException();
 ```
+
+## Reference
+[https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)
+[https://github.com/aliyun/aliyun-oss-php-sdk-flysystem](https://github.com/aliyun/aliyun-oss-php-sdk-flysystem)
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
