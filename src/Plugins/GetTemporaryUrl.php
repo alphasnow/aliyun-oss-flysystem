@@ -2,31 +2,33 @@
 
 namespace AlphaSnow\Flysystem\AliyunOss\Plugins;
 
-class AppendContent extends AliyunOssAbstractPlugin
+use OSS\OssClient;
+
+class GetTemporaryUrl extends AliyunOssAbstractPlugin
 {
     /**
      * @return string
      */
     public function getMethod()
     {
-        return 'appendContent';
+        return 'getTemporaryUrl';
     }
 
     /**
      * @param string $path
-     * @param mixed $content
-     * @param int $position
-     * @return int
+     * @param int $timeout
+     * @param string $method
+     * @return string
      * @throws \OSS\Core\OssException
      */
-    public function handle($path, $content, $position = 0)
+    public function handle($path, $timeout = 3600, $method = OssClient::OSS_HTTP_GET)
     {
         return $this->adapter->getClient()
-            ->appendObject(
+            ->signUrl(
                 $this->adapter->getBucket(),
                 $this->adapter->applyPathPrefix($path),
-                $content,
-                $position,
+                $timeout,
+                $method,
                 $this->adapter->getOptions()
             );
     }

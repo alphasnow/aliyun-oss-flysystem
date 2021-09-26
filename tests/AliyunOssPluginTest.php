@@ -4,6 +4,7 @@ namespace AlphaSnow\Flysystem\AliyunOss\Tests;
 
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 use AlphaSnow\Flysystem\AliyunOss\Plugins\AppendContent;
+use AlphaSnow\Flysystem\AliyunOss\Plugins\GetTemporaryUrl;
 use League\Flysystem\Filesystem;
 use Mockery\MockInterface;
 use OSS\OssClient;
@@ -43,12 +44,32 @@ class AliyunOssPluginTest extends TestCase
     {
         $filesystem->addPlugin(new AppendContent());
 
+        $mockPosition = 7;
         $client->shouldReceive("appendObject")
-            ->andReturn(7)
+            ->andReturn($mockPosition)
             ->once();
 
         $position = $filesystem->appendContent("foo/bar.md", "content", 0);
+        $this->assertSame($mockPosition, $position);
+    }
 
-        $this->assertSame(7, $position);
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param Filesystem $filesystem
+     * @param AliyunOssAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testGetTemporaryUrl($filesystem, $adapter, $client)
+    {
+        $filesystem->addPlugin(new GetTemporaryUrl());
+
+        $mockUrl = "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.mb?OSSAccessKeyId=LT******Hz&Expires=1632647900&Signature=jg******3D";
+        $client->shouldReceive("signUrl")
+            ->andReturn($mockUrl)
+            ->once();
+
+        $url = $filesystem->getTemporaryUrl("foo/bar.md");
+        $this->assertSame($mockUrl, $url);
     }
 }

@@ -6,6 +6,7 @@ use OSS\OssClient;
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 use AlphaSnow\Flysystem\AliyunOss\Plugins\AppendContent;
+use AlphaSnow\Flysystem\AliyunOss\Plugins\GetTemporaryUrl;
 
 $config = [
     "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey
@@ -23,12 +24,16 @@ $client = new OssClient($config['access_id'], $config['access_key'], $config['en
 $adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
 $flysystem->addPlugin(new AppendContent());
+$flysystem->addPlugin(new GetTemporaryUrl());
 
 $result = $flysystem->write('file.md', 'contents');
 $result = $flysystem->writeStream('file.md', fopen('file.md', 'r'));
 $result = $flysystem->update('file.md', 'new contents');
 $result = $flysystem->updateStream('file.md', fopen('file.md', 'r'));
+
+$result = $flysystem->delete('foo.md');
 $result = $flysystem->appendContent('foo.md', 'contents', 0);
+$result = $flysystem->getTemporaryUrl('foo.md');
 
 $result = $flysystem->copy('foo.md', 'baz.md');
 $result = $flysystem->rename('baz.md', 'bar.md');
