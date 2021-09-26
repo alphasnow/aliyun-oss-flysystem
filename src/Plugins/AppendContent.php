@@ -8,6 +8,9 @@ use League\Flysystem\Adapter\AbstractAdapter;
 
 class AppendContent extends AbstractPlugin
 {
+    /**
+     * @return string
+     */
     public function getMethod()
     {
         return 'appendContent';
