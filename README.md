@@ -10,10 +10,10 @@
 
 ## Compatibility
 
-| **flysystem**  |  **aliyun-oss-flysystem** |
-|---|---|
-| 1.0  | ^0.3  |
-| 1.1  | ^1.0  |
+| **php**  | **flysystem**  |  **aliyun-oss-flysystem** |
+|---|---|---|
+|>=5.5.9,\<7.0| ~1.0.0  | ^0.3  |
+|>=7.0| ^1.0 | ^1.0  |
 
 ## Installation
 
@@ -29,6 +29,7 @@ use OSS\OssClient;
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
 use AlphaSnow\Flysystem\AliyunOss\Plugins\AppendContent;
+use AlphaSnow\Flysystem\AliyunOss\Plugins\GetTemporaryUrl;
 
 $config = [
     "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey
@@ -45,6 +46,7 @@ $client = new OssClient($config['access_id'], $config['access_key'], $config['en
 $adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
 $flysystem->addPlugin(new AppendContent());
+$flysystem->addPlugin(new GetTemporaryUrl());
 ```
 
 ### Methods
