@@ -34,7 +34,7 @@ return (new PhpCsFixer\Config())
         'unary_operator_spaces' => true,
         'visibility_required' => [
             'elements' => [
-                'const',
+//                'const',
                 'method',
                 'property',
             ],
@@ -43,6 +43,6 @@ return (new PhpCsFixer\Config())
     ->setFinder(
         PhpCsFixer\Finder::create()
             ->exclude('vendor')
-            ->in([__DIR__.'/src/',__DIR__.'/tests/'])
+            ->in([__DIR__.'/src/',__DIR__.'/tests/',__DIR__.'/examples/'])
     )
 ;

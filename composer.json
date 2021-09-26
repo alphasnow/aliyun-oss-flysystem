@@ -16,6 +16,7 @@
         }
     ],
     "require": {
+        "php": ">=7.0",
         "league/flysystem": "^1.0",
         "aliyuncs/oss-sdk-php": "^2.4"
     },
@@ -37,8 +38,8 @@
     },
     "scripts": {
         "phpstan": "vendor/bin/phpstan analyse",
-        "check-style": "vendor/bin/php-cs-fixer fix --using-cache=no --diff --config=.php_cs --dry-run --ansi",
-        "fix-style": "vendor/bin/php-cs-fixer fix --using-cache=no --config=.php_cs --ansi",
+        "check-style": "vendor/bin/php-cs-fixer fix --using-cache=no --diff --config=.php-cs-fixer.php --dry-run --ansi",
+        "fix-style": "vendor/bin/php-cs-fixer fix --using-cache=no --config=.php-cs-fixer.php --ansi",
         "test": "vendor/bin/phpunit --colors=always --testdox"
     },
     "scripts-descriptions": {
