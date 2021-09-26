@@ -55,6 +55,10 @@ $flysystem->update('file.md', 'new contents');
 $flysystem->updateStream('file.md', fopen('file.md', 'r'));
 $flysystem->appendContent('foo.md', 'contents', 0);
 
+$flysystem->delete('foo.md');
+$flysystem->appendContent('foo.md', 'contents', 0);
+$flysystem->getTemporaryUrl('foo.md', 3600);
+
 $flysystem->copy('foo.md', 'baz.md');
 $flysystem->rename('baz.md', 'bar.md');
 $flysystem->delete('bar.md');
