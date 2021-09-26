@@ -423,7 +423,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
      * @param Config $config
      * @return array
      */
-    protected function getOptionsFromConfig(Config $config)
+    public function getOptionsFromConfig(Config $config)
     {
         $options = $config->get("options", []);
 

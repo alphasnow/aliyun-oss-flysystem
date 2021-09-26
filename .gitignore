@@ -7,3 +7,4 @@
 /.env
 /examples/.env
 /.php-cs-fixer.cache
+/examples/config.php

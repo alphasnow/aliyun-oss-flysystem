@@ -4,13 +4,23 @@ require __DIR__.'/../vendor/autoload.php';
 
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
+use OSS\OssClient;
 
-$env = is_file(__DIR__ . '/.env') ? __DIR__ . '/.env' : __DIR__ . '/.env.example';
-$config = parse_ini_file($env);
-!isset($config['options']) && $config['options'] = [];
+$config = [
+    "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey
+    "access_key" => "PkT4F********************Bl9or", // Required, AccessKey Key Secret
+    "endpoint" => "oss-cn-shanghai.aliyuncs.com",     // Required, Endpoint
+    "bucket" => "my-storage",                         // Required, Bucket
+    "prefix" => "",
+    "options" => [
+        "checkmd5" => false
+    ]
+];
+is_file(__DIR__ . '/config.php') && $config = array_merge($config, require __DIR__ . '/config.php');
 
-$adapter = AliyunOssAdapter::create($config['access_id'], $config['access_key'], $config['endpoint'], $config['bucket'], $config['prefix'], $config['options']);
-$flysystem = new Filesystem($adapter, ["disable_asserts" => true]);
+$client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
+$adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
+$flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
 
 $result = $flysystem->write('file.md', 'contents');
 $result = $flysystem->writeStream('file.md', fopen('file.md', 'r'));

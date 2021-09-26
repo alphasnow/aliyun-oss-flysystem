@@ -27,23 +27,22 @@ composer require "alphasnow/aliyun-oss-flysystem" -vvv
 ```php
 use League\Flysystem\Filesystem;
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapter;
+use OSS\OssClient;
 
 $config = [
-    "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey 
-    "access_key"=> "PkT4F********************Bl9or",  // Required, AccessKey Key Secret
-    "endpoint"  => "oss-cn-shanghai.aliyuncs.com",    // Required, Endpoint
-    "bucket"    => "my-storage"                       // Required, Bucket
-    "prefix"    => "",
-    "options"   => [
-        "is_cname"       => false,
-        "security_token" => null,
-        "request_proxy"  => null,
-        "checkmd5"       => false
+    "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey
+    "access_key" => "PkT4F********************Bl9or", // Required, AccessKey Key Secret
+    "endpoint" => "oss-cn-shanghai.aliyuncs.com",     // Required, Endpoint
+    "bucket" => "my-storage",                         // Required, Bucket
+    "prefix" => "",
+    "options" => [
+        "checkmd5" => false
     ]
 ];
 
-$adapter = AliyunOssAdapter::create($config['access_id'], $config['access_key'], $config['endpoint'], $config['bucket'], $config['prefix'], $config['options']);
-$flysystem = new Filesystem($adapter, ["disable_asserts" => true]);
+$client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
+$adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
+$flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
 ```
 
 ### Methods
@@ -96,8 +95,8 @@ $exception = $flysystem->getAdapter()->getException();
 ```
 
 ## Reference
-[https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)
-[https://github.com/aliyun/aliyun-oss-php-sdk-flysystem](https://github.com/aliyun/aliyun-oss-php-sdk-flysystem)
+[https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)  
+[https://github.com/aliyun/aliyun-oss-php-sdk-flysystem](https://github.com/aliyun/aliyun-oss-php-sdk-flysystem)  
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
