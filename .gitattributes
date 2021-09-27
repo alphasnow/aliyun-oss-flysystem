@@ -16,3 +16,4 @@ phpstan.neon export-ignore
 _config.yml export-ignore
 /.github export-ignore
 CHANGELOG.md export-ignore
+.php-cs-fixer.php export-ignore
