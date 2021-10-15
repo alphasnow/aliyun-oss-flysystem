@@ -1,6 +1,6 @@
 # Aliyun OSS Flysystem
 
-💾 Flysystem adapter for the Aliyun storage.
+💾 Flysystem adapter for the [Alibaba storage](http://oss.aliyun.com).
 
 [![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
@@ -55,14 +55,11 @@ $flysystem->write('file.md', 'contents');
 $flysystem->writeStream('file.md', fopen('file.md', 'r'));
 $flysystem->update('file.md', 'new contents');
 $flysystem->updateStream('file.md', fopen('file.md', 'r'));
-$flysystem->appendContent('foo.md', 'contents', 0);
+$flysystem->put('file.md', 'contents');
+$flysystem->putStream('file.md', fopen('file.md', 'r'));
 
-$flysystem->delete('foo.md');
-$flysystem->appendContent('foo.md', 'contents', 0);
-$flysystem->getTemporaryUrl('foo.md', 3600);
-
-$flysystem->copy('foo.md', 'baz.md');
 $flysystem->rename('baz.md', 'bar.md');
+$flysystem->copy('foo.md', 'baz.md');
 $flysystem->delete('bar.md');
 $flysystem->has('bar.md');
 
@@ -70,10 +67,11 @@ $flysystem->read('file.md');
 $flysystem->readStream('file.md');
 $flysystem->readAndDelete('file.md');
 
+$flysystem->listContents('/');
+$flysystem->listContents('/',true);
+
 $flysystem->createDir('foo/');
 $flysystem->deleteDir('foo/');
-$result = $flysystem->listContents('/');
-$result = $flysystem->listContents('/',true);
 
 $flysystem->setVisibility('foo/bar','public');
 $flysystem->getVisibility('foo/bar');
@@ -82,6 +80,12 @@ $flysystem->getMetadata('file.md');
 $flysystem->getSize('file.md');
 $flysystem->getMimetype('file.md');
 $flysystem->getTimestamp('file.md');
+```
+
+### Plugins
+```php
+$flysystem->appendContent('foo.md', 'contents', 0);
+$flysystem->getTemporaryUrl('foo.md', 3600);
 ```
 
 ### Options

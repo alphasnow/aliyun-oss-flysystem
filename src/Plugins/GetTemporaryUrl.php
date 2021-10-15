@@ -18,10 +18,11 @@ class GetTemporaryUrl extends AliyunOssAbstractPlugin
      * @param string $path
      * @param int $timeout
      * @param string $method
+     * @param array $config
      * @return string
      * @throws \OSS\Core\OssException
      */
-    public function handle($path, $timeout = 3600, $method = OssClient::OSS_HTTP_GET)
+    public function handle($path, $timeout = 3600, $method = OssClient::OSS_HTTP_GET, $config = [])
     {
         return $this->adapter->getClient()
             ->signUrl(
@@ -29,7 +30,7 @@ class GetTemporaryUrl extends AliyunOssAbstractPlugin
                 $this->adapter->applyPathPrefix($path),
                 $timeout,
                 $method,
-                $this->adapter->getOptions()
+                $this->adapter->getOptionsFromConfig($this->prepareConfig($config))
             );
     }
 }

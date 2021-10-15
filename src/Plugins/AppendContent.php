@@ -16,10 +16,11 @@ class AppendContent extends AliyunOssAbstractPlugin
      * @param string $path
      * @param mixed $content
      * @param int $position
+     * @param array $config
      * @return int
      * @throws \OSS\Core\OssException
      */
-    public function handle($path, $content, $position = 0)
+    public function handle($path, $content, $position = 0, $config = [])
     {
         return $this->adapter->getClient()
             ->appendObject(
@@ -27,7 +28,7 @@ class AppendContent extends AliyunOssAbstractPlugin
                 $this->adapter->applyPathPrefix($path),
                 $content,
                 $position,
-                $this->adapter->getOptions()
+                $this->adapter->getOptionsFromConfig($this->prepareConfig($config))
             );
     }
 }

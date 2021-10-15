@@ -3,6 +3,7 @@
 namespace AlphaSnow\Flysystem\AliyunOss\Plugins;
 
 use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapterInterface;
+use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
 use League\Flysystem\Plugin\AbstractPlugin;
@@ -28,5 +29,18 @@ abstract class AliyunOssAbstractPlugin extends AbstractPlugin
                 $this->adapter = $adapter;
             }
         }
+    }
+
+    /**
+     * @param array $config
+     * @return Config
+     */
+    protected function prepareConfig(array $config)
+    {
+        $config = new Config($config);
+        if ($this->filesystem instanceof Filesystem) {
+            $config->setFallback($this->filesystem->getConfig());
+        }
+        return $config;
     }
 }
