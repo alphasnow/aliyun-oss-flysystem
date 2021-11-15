@@ -1,6 +1,6 @@
 # Aliyun OSS Flysystem
 
-💾 Flysystem adapter for the [Alibaba storage](http://oss.aliyun.com).
+💾 Flysystem adapter for the [Aliyun Object Storage Service](http://oss.aliyun.com).
 
 [![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
