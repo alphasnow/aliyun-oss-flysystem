@@ -15,6 +15,7 @@
 |---|---|---|
 |>=5.5.9,\<7.0| ~1.0.0  | ^0.3  |
 |>=7.0| ^1.0 | ^1.0  |
+|>=8.0| ^3.0 | ^3.0  |
 
 ## Installation
 
@@ -102,15 +103,8 @@ $flysystem->write('file.md', 'contents', [
 ]);
 ```
 
-### Exception
-```php
-$flysystem->getMetadata('none.md');
-$exception = $flysystem->getAdapter()->getException();
-```
-
 ## Reference
-[https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)  
-[https://github.com/aliyun/aliyun-oss-php-sdk-flysystem](https://github.com/aliyun/aliyun-oss-php-sdk-flysystem)  
+[https://github.com/thephpleague/flysystem](https://github.com/thephpleague/flysystem)   
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE) for more information.

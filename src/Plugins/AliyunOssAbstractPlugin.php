@@ -1,8 +1,8 @@
 <?php
 
-namespace AlphaSnow\Flysystem\AliyunOss\Plugins;
+namespace AlphaSnow\Flysystem\Aliyun\Plugins;
 
-use AlphaSnow\Flysystem\AliyunOss\AliyunOssAdapterInterface;
+use AlphaSnow\Flysystem\Aliyun\AliyunOssAdapterInterface;
 use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;

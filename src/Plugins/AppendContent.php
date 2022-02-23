@@ -1,6 +1,6 @@
 <?php
 
-namespace AlphaSnow\Flysystem\AliyunOss\Plugins;
+namespace AlphaSnow\Flysystem\Aliyun\Plugins;
 
 class AppendContent extends AliyunOssAbstractPlugin
 {
