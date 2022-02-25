@@ -37,9 +37,7 @@ $config = [
     "endpoint" => "oss-cn-shanghai.aliyuncs.com",// Required, Endpoint
     "bucket" => "bucket-name",                   // Required, Bucket
     "prefix" => "",
-    "options" => [
-        "checkmd5" => false
-    ]
+    "options" => []
 ];
 
 $client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);

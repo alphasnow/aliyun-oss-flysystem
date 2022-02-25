@@ -12,9 +12,7 @@ $config = [
     "endpoint" => "oss-cn-shanghai.aliyuncs.com",// Required, Endpoint
     "bucket" => "bucket-name",                   // Required, Bucket
     "prefix" => "",
-    "options" => [
-        "checkmd5" => false
-    ]
+    "options" => []
 ];
 is_file(__DIR__ . '/config.php') && $config = array_merge($config, require __DIR__ . '/config.php');
 
