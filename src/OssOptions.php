@@ -41,7 +41,7 @@ class OssOptions
         $options = $config->get("options", []);
 
         if ($headers = $config->get("headers")) {
-            $options[OssClient::OSS_HEADERS] = $headers;
+            $options[OssClient::OSS_HEADERS] = isset($options[OssClient::OSS_HEADERS]) ? array_merge($options[OssClient::OSS_HEADERS], $headers) : $headers;
         }
 
         if ($visibility = $config->get("visibility")) {
@@ -50,5 +50,4 @@ class OssOptions
 
         return array_merge($this->options, $options);
     }
-
 }

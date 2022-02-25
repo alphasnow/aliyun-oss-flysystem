@@ -5,6 +5,3 @@ parameters:
 
     paths:
         - %currentWorkingDirectory%/src
-
-    ignoreErrors:
-        - '#Unsafe usage of new static\(\)\.#'
