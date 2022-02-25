@@ -6,6 +6,17 @@ use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\Config;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\UnableToCopyFile;
+use League\Flysystem\UnableToRetrieveMetadata;
+use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToCreateDirectory;
+use League\Flysystem\UnableToDeleteDirectory;
+use League\Flysystem\UnableToDeleteFile;
+use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToWriteFile;
+use OSS\Core\OssException;
 use OSS\OssClient;
 use League\Flysystem\PathPrefixer;
 use League\MimeTypeDetection\MimeTypeDetector;
@@ -38,11 +49,11 @@ class AliyunAdapter implements FilesystemAdapter
      * @var PathPrefixer
      */
     protected PathPrefixer $prefixer;
+
     /**
      * @var VisibilityConverter
      */
     protected VisibilityConverter $visibility;
-
 
     /**
      * @param OssClient $client
@@ -71,7 +82,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function fileExists(string $path): bool
     {
-        return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        try {
+            return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        }catch (OssException $exception){
+            UnableToCheckExistence::forLocation($path, $exception);
+        }
     }
 
     /**
@@ -79,7 +94,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function directoryExists(string $path): bool
     {
-        return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        try {
+            return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixPath($path)."/", $this->options->getOptions());
+        }catch (OssException $exception){
+            UnableToCheckExistence::forLocation($path, $exception);
+        }
     }
 
     /**
@@ -87,7 +106,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function write(string $path, string $contents, Config $config): void
     {
-        $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config,$this->visibility));
+        try{
+            $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config,$this->visibility));
+        }catch (OssException $exception){
+            throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
+        }
     }
 
     /**
@@ -95,7 +118,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function writeStream(string $path, $contents, Config $config): void
     {
-        $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config,$this->visibility));
+        try {
+            $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
+        }catch (OssException $exception){
+            throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
+        }
     }
 
     /**
@@ -103,7 +130,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function read(string $path): string
     {
-        return $this->client->getObject($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        try {
+            return $this->client->getObject($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        }catch (OssException $exception){
+            throw UnableToReadFile::fromLocation($path, $exception->getErrorCode(), $exception);
+        }
     }
 
     /**
@@ -112,8 +143,15 @@ class AliyunAdapter implements FilesystemAdapter
     public function readStream(string $path)
     {
         $stream = fopen("php://temp", "w+b");
-        $options = array_merge($this->options->getOptions(), [OssClient::OSS_FILE_DOWNLOAD => $stream]);
-        $this->client->getObject($this->bucket, $this->prefixer->prefixPath($path), $options);
+
+        try{
+            $options = array_merge($this->options->getOptions(), [OssClient::OSS_FILE_DOWNLOAD => $stream]);
+            $this->client->getObject($this->bucket, $this->prefixer->prefixPath($path), $options);
+        }catch (OssException $exception){
+            fclose($stream);
+            throw UnableToReadFile::fromLocation($path, $exception->getErrorCode(), $exception);
+        }
+
         rewind($stream);
         return $stream;
     }
@@ -123,7 +161,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function delete(string $path): void
     {
-        $this->client->deleteObject($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        try {
+            $this->client->deleteObject($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        }catch (OssException $exception){
+            throw UnableToDeleteFile::atLocation($path, $exception->getErrorCode(), $exception);
+        }
     }
 
     /**
@@ -131,7 +173,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function deleteDirectory(string $path): void
     {
-        $list = $this->listContents($path, true);
+        try{
+            $list = $this->listContents($path, true);
+        }catch (FilesystemException $exception){
+            throw UnableToDeleteDirectory::atLocation($path, '', $exception);
+        }
 
         $objects = [];
         foreach ($list as $val) {
@@ -140,11 +186,14 @@ class AliyunAdapter implements FilesystemAdapter
             } else {
                 $path = $val["path"];
             }
-
             $objects[] = $this->prefixer->prefixPath($path);
         }
 
-        $this->client->deleteObjects($this->bucket, $objects, $this->options->getOptions());
+        try {
+            $this->client->deleteObjects($this->bucket, $objects, $this->options->getOptions());
+        }catch (OssException $exception){
+            throw UnableToDeleteDirectory::atLocation($path, $exception->getErrorCode(), $exception);
+        }
     }
 
     /**
@@ -152,7 +201,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function createDirectory(string $path, Config $config): void
     {
-        $this->client->createObjectDir($this->bucket, $this->prefixer->prefixPath($path), $this->options->mergeConfig($config,$this->visibility));
+        try {
+            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixPath($path), $this->options->mergeConfig($config,$this->visibility));
+        }catch (OssException $exception){
+            throw UnableToCreateDirectory::dueToFailure($path, $exception);
+        }
     }
 
     /**
@@ -160,7 +213,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function setVisibility(string $path, string $visibility): void
     {
-        $this->client->putObjectAcl($this->bucket, $this->prefixer->prefixPath($path), $this->visibility->visibilityToAcl($visibility), $this->options->getOptions());
+        try{
+            $this->client->putObjectAcl($this->bucket, $this->prefixer->prefixPath($path), $this->visibility->visibilityToAcl($visibility), $this->options->getOptions());
+        }catch (OssException $exception){
+            throw UnableToSetVisibility::atLocation($path,$exception->getErrorCode(),$exception);
+        }
     }
 
     /**
@@ -168,7 +225,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function visibility(string $path): FileAttributes
     {
-        $acl = $this->client->getObjectAcl($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        try{
+            $acl = $this->client->getObjectAcl($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        }catch (OssException $exception){
+            throw UnableToRetrieveMetadata::visibility($path,$exception->getErrorCode(),$exception);
+        }
 
         return new FileAttributes($path, null, $this->visibility->aclToVisibility($acl));
     }
@@ -271,8 +332,7 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function move(string $source, string $destination, Config $config): void
     {
-        $this->copy($source, $destination, $config);
-        $this->delete($source);
+        $this->copy($source, $destination, $config) && $this->delete($source);
     }
 
     /**
@@ -280,7 +340,11 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function copy(string $source, string $destination, Config $config): void
     {
-        $this->client->copyObject($this->bucket, $this->prefixer->prefixPath($source), $this->bucket, $this->prefixer->prefixPath($destination), $this->options->getOptions());
+        try{
+            $this->client->copyObject($this->bucket, $this->prefixer->prefixPath($source), $this->bucket, $this->prefixer->prefixPath($destination), $this->options->getOptions());
+        }catch (OssException $exception){
+            UnableToCopyFile::fromLocationTo($source,$destination,$exception);
+        }
     }
 
     /**
@@ -289,7 +353,12 @@ class AliyunAdapter implements FilesystemAdapter
      */
     protected function metadata($path): FileAttributes
     {
-        $result = $this->client->getObjectMeta($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        try{
+            $result = $this->client->getObjectMeta($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
+        }catch (OssException $exception){
+            UnableToRetrieveMetadata::create($path,"metadata",$exception->getErrorCode(),$exception);
+        }
+
         $size = isset($result["info"]["download_content_length"]) ? intval($result["info"]["download_content_length"]) : 0;
         $timestamp = isset($result["info"]["filetime"]) ? $result["info"]["filetime"] : 0;
         $mimetype = isset($result["info"]["content_type"]) ? $result["info"]["content_type"] : "";
