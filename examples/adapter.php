@@ -1,24 +1,14 @@
 <?php
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
+use AlphaSnow\Flysystem\Aliyun\AliyunFactory;
 use OSS\OssClient;
-use League\Flysystem\Filesystem;
-use AlphaSnow\Flysystem\Aliyun\AliyunAdapter;
 
-$config = [
-    "access_id" => "**************",             // Required, YourAccessKeyId
-    "access_secret" => "********************",   // Required, YourAccessKeySecret
-    "endpoint" => "oss-cn-shanghai.aliyuncs.com",// Required, Endpoint
-    "bucket" => "bucket-name",                   // Required, Bucket
-    "prefix" => "",
-    "options" => []
-];
-is_file(__DIR__ . '/config.php') && $config = array_merge($config, require __DIR__ . '/config.php');
+Dotenv\Dotenv::createUnsafeImmutable(dirname(__DIR__))->load();
+$config = require __DIR__ . "/config.php";
 
-$client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
-$adapter = new AliyunAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
-$flysystem = new Filesystem($adapter);
+$flysystem = (new AliyunFactory())->createFilesystem($config);
 
 $flysystem->write('file.md', 'contents');
 $flysystem->writeStream('foo.md', fopen('file.md', 'r'));
@@ -36,7 +26,7 @@ $flysystem->createDirectory('foo/');
 $directoryExists = $flysystem->directoryExists('foo/');
 $flysystem->deleteDirectory('foo/');
 
-$listContents = $flysystem->listContents('/', true);
+$listContents = $flysystem->listContents('/');
 $listPaths = [];
 foreach ($listContents as $listContent) {
     $listPaths[] = $listContent->path();

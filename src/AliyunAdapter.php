@@ -2,22 +2,22 @@
 
 namespace AlphaSnow\Flysystem\Aliyun;
 
+use League\Flysystem\Config;
 use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemAdapter;
-use League\Flysystem\Config;
-use League\Flysystem\UnableToCopyFile;
-use League\Flysystem\UnableToRetrieveMetadata;
-use League\Flysystem\UnableToSetVisibility;
+use League\Flysystem\PathPrefixer;
 use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteDirectory;
 use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToReadFile;
+use League\Flysystem\UnableToRetrieveMetadata;
+use League\Flysystem\UnableToSetVisibility;
 use League\Flysystem\UnableToWriteFile;
 use OSS\Core\OssException;
 use OSS\OssClient;
-use League\Flysystem\PathPrefixer;
 
 class AliyunAdapter implements FilesystemAdapter
 {
@@ -54,9 +54,9 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function __construct(
         OssClient $client,
-        string $bucket,
-        string $prefix = "",
-        array $options = []
+        string    $bucket,
+        string    $prefix = "",
+        array     $options = []
     ) {
         $this->client = $client;
         $this->bucket = $bucket;
@@ -282,21 +282,22 @@ class AliyunAdapter implements FilesystemAdapter
                 foreach ($listObject as $objectInfo) {
                     $objectPath = $this->prefixer->stripPrefix($objectInfo->getKey());
                     $objectLastModified = strtotime($objectInfo->getLastModified());
-                    if (substr($objectPath, 0, -1) == '/') {
-                        yield new DirectoryAttributes($objectPath);
-                    } else {
-                        yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
+                    if (substr($objectPath, -1, 1) == '/') {
+                        continue;
                     }
+                    yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
                 }
             }
 
-            if ($deep == true) {
-                $prefixList = $listObjectInfo->getPrefixList();
-                foreach ($prefixList as $prefixInfo) {
-                    $subPath = $this->prefixer->stripDirectoryPrefix($prefixInfo->getPrefix());
-                    if ($subPath == $path) {
-                        break;
-                    }
+
+            $prefixList = $listObjectInfo->getPrefixList();
+            foreach ($prefixList as $prefixInfo) {
+                $subPath = $this->prefixer->stripDirectoryPrefix($prefixInfo->getPrefix());
+                if ($subPath == $path) {
+                    continue;
+                }
+                yield new DirectoryAttributes($subPath);
+                if ($deep == true) {
                     $contents = $this->listContents($subPath, true);
                     foreach ($contents as $content) {
                         yield $content;

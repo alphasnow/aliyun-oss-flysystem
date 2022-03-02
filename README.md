@@ -28,21 +28,17 @@ composer require "alphasnow/aliyun-oss-flysystem" -vvv
 ### Initialize
 ```php
 use OSS\OssClient;
-use League\Flysystem\Filesystem;
-use AlphaSnow\Flysystem\Aliyun\AliyunAdapter;
+use AlphaSnow\Flysystem\Aliyun\AliyunFactory;
 
 $config = [
-    "access_id" => "**************",             // Required, YourAccessKeyId
-    "access_secret" => "********************",   // Required, YourAccessKeySecret
-    "endpoint" => "oss-cn-shanghai.aliyuncs.com",// Required, Endpoint
-    "bucket" => "bucket-name",                   // Required, Bucket
+    "access_key_id" => "**************",             // Required, YourAccessKeyId
+    "access_key_secret" => "********************",   // Required, YourAccessKeySecret
+    "endpoint" => "oss-cn-shanghai.aliyuncs.com",    // Required, Endpoint
+    "bucket" => "bucket-name",                       // Required, Bucket
     "prefix" => "",
-    "options" => []
 ];
 
-$client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
-$adapter = new AliyunAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
-$flysystem = new Filesystem($adapter);
+$flysystem = (new AliyunFactory())->createFilesystem($config);
 
 $flysystem->write('file.md', 'contents');
 $flysystem->writeStream('foo.md', fopen('file.md', 'r'));
