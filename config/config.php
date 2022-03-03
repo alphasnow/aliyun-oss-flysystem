@@ -1,10 +1,10 @@
 <?php
 
 return [
-    "access_key_id" => "",
-    "access_key_secret" => "",
-    "endpoint" => "",
-    "bucket" => "",
+    "access_key_id" => "",// Required
+    "access_key_secret" => "",// Required
+    "endpoint" => "",// Required
+    "bucket" => "",// Required
     "prefix" => "",
     "request_proxy" => null,
     "security_token" => null,
