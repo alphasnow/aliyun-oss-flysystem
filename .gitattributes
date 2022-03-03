@@ -17,3 +17,4 @@ _config.yml export-ignore
 /.github export-ignore
 CHANGELOG.md export-ignore
 .php-cs-fixer.php export-ignore
+.env.example export-ignore
