@@ -7,13 +7,23 @@ use OSS\OssClient;
 
 class AliyunFactory
 {
+    /**
+     * @param array $config
+     * @param OssClient|null $client
+     * @return Filesystem
+     */
     public function createFilesystem(array $config, OssClient $client = null): Filesystem
     {
         is_null($client) && $client = $this->createClient($config);
         return new Filesystem(new AliyunAdapter($client, $config['bucket'], $config['prefix'], $config['options']));
     }
 
-    public function createClient($config): OssClient
+    /**
+     * @param array $config
+     * @return OssClient
+     * @throws \OSS\Core\OssException
+     */
+    public function createClient(array $config): OssClient
     {
         $client = new OssClient($config['access_key_id'], $config['access_key_secret'], $config['endpoint'], $config['is_cname'], $config['security_token'], $config['security_token']);
         !is_null($config["use_ssl"]) && $client->setUseSSL($config["use_ssl"]);

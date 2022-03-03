@@ -61,8 +61,8 @@ class AliyunAdapter implements FilesystemAdapter
         $this->client = $client;
         $this->bucket = $bucket;
         $this->prefixer = new PathPrefixer($prefix);
-        $this->options = new OssOptions($options);
         $this->visibility = new VisibilityConverter();
+        $this->options = new OssOptions($options, $this->visibility);
     }
 
     /**
@@ -95,7 +95,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function write(string $path, string $contents, Config $config): void
     {
         try {
-            $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
+            $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config));
         } catch (OssException $exception) {
             throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
         }
@@ -107,7 +107,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function writeStream(string $path, $contents, Config $config): void
     {
         try {
-            $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
+            $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config));
         } catch (OssException $exception) {
             throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
         }
@@ -198,7 +198,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function createDirectory(string $path, Config $config): void
     {
         try {
-            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->mergeConfig($config, $this->visibility));
+            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->mergeConfig($config));
         } catch (OssException $exception) {
             throw UnableToCreateDirectory::dueToFailure($path, $exception);
         }

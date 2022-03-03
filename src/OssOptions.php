@@ -7,11 +7,24 @@ use OSS\OssClient;
 
 class OssOptions
 {
+    /**
+     * @var array
+     */
     protected $options;
 
-    public function __construct(array $options)
+    /**
+     * @var VisibilityConverter
+     */
+    protected $visibility;
+
+    /**
+     * @param array $options
+     * @param VisibilityConverter $visibility
+     */
+    public function __construct(array $options, VisibilityConverter $visibility)
     {
         $this->options = $options;
+        $this->visibility = $visibility;
     }
 
     /**
@@ -36,7 +49,7 @@ class OssOptions
      * @param Config $config
      * @return array
      */
-    public function mergeConfig(Config $config, VisibilityConverter $visibilityConverter): array
+    public function mergeConfig(Config $config): array
     {
         $options = $config->get("options", []);
 
@@ -45,9 +58,9 @@ class OssOptions
         }
 
         if ($visibility = $config->get("visibility")) {
-            $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $visibilityConverter->visibilityToAcl($visibility);
+            $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibility->visibilityToAcl($visibility);
         }
 
-        return array_merge($this->options, $options);
+        return array_merge_recursive($this->options, $options);
     }
 }
