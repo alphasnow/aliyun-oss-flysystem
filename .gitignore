@@ -4,6 +4,6 @@
 /.php_cs.cache
 /.phpunit.result.cache
 /phpunit.xml
-/examples/.env
+/.env
 /.php-cs-fixer.cache
 /.env

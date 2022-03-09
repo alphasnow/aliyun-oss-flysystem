@@ -24,17 +24,17 @@ class AliyunAdapter implements FilesystemAdapter
     /**
      * @var OssClient
      */
-    protected $client;
+    protected OssClient $client;
 
     /**
      * @var string
      */
-    protected $bucket;
+    protected string $bucket;
 
     /**
      * @var OssOptions
      */
-    protected $options;
+    protected OssOptions $options;
 
     /**
      * @var PathPrefixer
@@ -273,7 +273,7 @@ class AliyunAdapter implements FilesystemAdapter
             try {
                 $listObjectInfo = $this->client->listObjects($this->bucket, $options);
             } catch (OssException $exception) {
-                throw new AliyunException("", 0, $exception);
+                throw new AliyunException($exception->getErrorMessage(), 0, $exception);
             }
             $nextMarker = $listObjectInfo->getNextMarker();
 
@@ -328,7 +328,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $this->client->copyObject($this->bucket, $this->prefixer->prefixPath($source), $this->bucket, $this->prefixer->prefixPath($destination), $this->options->getOptions());
         } catch (OssException $exception) {
-            UnableToCopyFile::fromLocationTo($source, $destination, $exception);
+            throw UnableToCopyFile::fromLocationTo($source, $destination, $exception);
         }
     }
 
@@ -341,12 +341,44 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $result = $this->client->getObjectMeta($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            UnableToRetrieveMetadata::create($path, "metadata", $exception->getErrorCode(), $exception);
+            throw UnableToRetrieveMetadata::create($path, "metadata", $exception->getErrorCode(), $exception);
         }
 
         $size = isset($result["content-length"]) ? intval($result["content-length"]) : 0;
         $timestamp = isset($result["last-modified"]) ? strtotime($result["last-modified"]) : 0;
         $mimetype = isset($result["content-type"]) ? $result["content-type"] : "";
         return new FileAttributes($path, $size, null, $timestamp, $mimetype);
+    }
+
+    /**
+     * @return OssClient
+     */
+    public function getClient(): OssClient
+    {
+        return $this->client;
+    }
+
+    /**
+     * @return OssOptions
+     */
+    public function getOptions(): OssOptions
+    {
+        return $this->options;
+    }
+
+    /**
+     * @return PathPrefixer
+     */
+    public function getPrefixer(): PathPrefixer
+    {
+        return $this->prefixer;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBucket(): string
+    {
+        return $this->bucket;
     }
 }
