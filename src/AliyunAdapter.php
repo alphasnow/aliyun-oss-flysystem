@@ -297,8 +297,8 @@ class AliyunAdapter implements FilesystemAdapter
                     continue;
                 }
                 yield new DirectoryAttributes($subPath);
-                if ($deep == true) {
-                    $contents = $this->listContents($subPath, true);
+                if ($deep === true) {
+                    $contents = $this->listContents($subPath, $deep);
                     foreach ($contents as $content) {
                         yield $content;
                     }

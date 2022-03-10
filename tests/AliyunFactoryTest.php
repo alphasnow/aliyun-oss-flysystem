@@ -12,10 +12,11 @@ class AliyunFactoryTest extends TestCase
     public function testCreateClient()
     {
         $config = [];
-        $config['access_key_id'] = getenv("OSS_ACCESS_KEY_ID");
-        $config['access_key_secret'] = getenv("OSS_ACCESS_KEY_SECRET");
-        $config['bucket'] = getenv("OSS_BUCKET");
-        $config['endpoint'] = getenv("OSS_ENDPOINT");
+        $config['access_key_id'] = "access_id";
+        $config['access_key_secret'] = "access_secret";
+        $config['bucket'] = "bucket";
+        $config['endpoint'] = "endpoint.com";
+
         $factory = new AliyunFactory();
         $client = $factory->createClient($config);
         $this->assertInstanceOf(OssClient::class, $client);
@@ -25,10 +26,10 @@ class AliyunFactoryTest extends TestCase
     public function testCreateFilesystem()
     {
         $config = [];
-        $config['access_key_id'] = getenv("OSS_ACCESS_KEY_ID");
-        $config['access_key_secret'] = getenv("OSS_ACCESS_KEY_SECRET");
-        $config['bucket'] = getenv("OSS_BUCKET");
-        $config['endpoint'] = getenv("OSS_ENDPOINT");
+        $config['access_key_id'] = "access_id";
+        $config['access_key_secret'] = "access_secret";
+        $config['bucket'] = "bucket";
+        $config['endpoint'] = "endpoint.com";
 
         $factory = new AliyunFactory();
         $filesystem = $factory->createFilesystem($config);
