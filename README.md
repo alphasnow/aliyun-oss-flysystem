@@ -4,10 +4,11 @@
 
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Total Downloads](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/downloads)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
-[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 [![Code Coverage](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/?branch=master)
 [![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem?ref=badge_shield)
+[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 
 ## Compatibility
 
@@ -20,7 +21,7 @@
 ## Installation
 
 ```bash
-composer require "alphasnow/aliyun-oss-flysystem" -vvv
+composer require "alphasnow/aliyun-oss-flysystem"
 ```
 
 ## Usage
@@ -35,7 +36,6 @@ $config = [
     "access_key_secret" => "********************",   // Required, YourAccessKeySecret
     "endpoint" => "oss-cn-shanghai.aliyuncs.com",    // Required, Endpoint
     "bucket" => "bucket-name",                       // Required, Bucket
-    "prefix" => "",
 ];
 
 $flysystem = (new AliyunFactory())->createFilesystem($config);
