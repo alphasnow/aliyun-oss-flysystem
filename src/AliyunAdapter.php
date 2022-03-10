@@ -186,12 +186,19 @@ class AliyunAdapter implements FilesystemAdapter
             $bool = true;
             while ($bool) {
                 $result = $this->client->listObjects($this->bucket, $options);
-                $objects = array();
                 if (count($result->getObjectList()) > 0) {
+                    $objects = array();
                     foreach ($result->getObjectList() as $info) {
                         $objects[] = $info->getKey();
                     }
-                    $this->client->deleteObjects($this->bucket, $objects);
+                    $this->client->deleteObjects($this->bucket, $objects, $options);
+                }
+                if (count($result->getPrefixList()) > 0) {
+                    $objects = array();
+                    foreach ($result->getPrefixList() as $info) {
+                        $objects[] = $info->getPrefix();
+                    }
+                    $this->client->deleteObjects($this->bucket, $objects, $options);
                 }
                 if ($result->getIsTruncated() === 'true') {
                     $option[OssClient::OSS_MARKER] = $result->getNextMarker();
@@ -210,7 +217,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function createDirectory(string $path, Config $config): void
     {
         try {
-            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->mergeConfig($config, $this->visibility));
+            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixPath($path), $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
             throw UnableToCreateDirectory::dueToFailure($path, $exception);
         }
