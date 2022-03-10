@@ -47,22 +47,34 @@ class AliyunAdapter implements FilesystemAdapter
     protected VisibilityConverter $visibility;
 
     /**
+     * @var UrlGenerator
+     */
+    protected UrlGenerator $urlGenerator;
+
+    /**
+     * @var array
+     */
+    protected array $config;
+
+    /**
      * @param OssClient $client
      * @param string $bucket
      * @param string $prefix
-     * @param array $options
+     * @param array $config
      */
     public function __construct(
         OssClient $client,
         string    $bucket,
         string    $prefix = "",
-        array     $options = []
+        array     $config = []
     ) {
         $this->client = $client;
         $this->bucket = $bucket;
         $this->prefixer = new PathPrefixer($prefix);
+        $this->config = $config;
         $this->visibility = new VisibilityConverter();
-        $this->options = new OssOptions($options, $this->visibility);
+        $this->options = new OssOptions($config['options'] ?? []);
+        $this->urlGenerator = new UrlGenerator($config);
     }
 
     /**
@@ -95,7 +107,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function write(string $path, string $contents, Config $config): void
     {
         try {
-            $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config));
+            $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
             throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
         }
@@ -107,7 +119,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function writeStream(string $path, $contents, Config $config): void
     {
         try {
-            $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config));
+            $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
             throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
         }
@@ -198,7 +210,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function createDirectory(string $path, Config $config): void
     {
         try {
-            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->mergeConfig($config));
+            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
             throw UnableToCreateDirectory::dueToFailure($path, $exception);
         }
@@ -380,5 +392,31 @@ class AliyunAdapter implements FilesystemAdapter
     public function getBucket(): string
     {
         return $this->bucket;
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    public function getUrl(string $path): string
+    {
+        $object = $this->prefixer->prefixPath($path);
+        return $this->urlGenerator->fullUrl($object);
+    }
+
+    /**
+     * @param  string  $path
+     * @param  \DateTimeInterface  $expiration
+     * @param  array  $options
+     * @return string
+     */
+    public function getTemporaryUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        $object = $this->prefixer->prefixPath($path);
+        $options = $this->options->mergeConfig(new Config($options));
+        $timeout = $expiration->getTimestamp() - (new \DateTime())->getTimestamp();
+
+        $url = $this->client->signUrl($this->bucket, $object, $timeout, OssClient::OSS_HTTP_GET, $options);
+        return $this->urlGenerator->correctDomain($url);
     }
 }

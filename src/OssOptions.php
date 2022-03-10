@@ -21,10 +21,9 @@ class OssOptions
      * @param array $options
      * @param VisibilityConverter $visibility
      */
-    public function __construct(array $options, VisibilityConverter $visibility)
+    public function __construct(array $options)
     {
         $this->options = $options;
-        $this->visibility = $visibility;
     }
 
     /**
@@ -49,7 +48,7 @@ class OssOptions
      * @param Config $config
      * @return array
      */
-    public function mergeConfig(Config $config): array
+    public function mergeConfig(Config $config, VisibilityConverter $visibilityConverter = null): array
     {
         $options = $config->get("options", []);
 
@@ -58,7 +57,8 @@ class OssOptions
         }
 
         if ($visibility = $config->get("visibility")) {
-            $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibility->visibilityToAcl($visibility);
+            is_null($visibilityConverter) && $visibilityConverter = new VisibilityConverter();
+            $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $visibilityConverter->visibilityToAcl($visibility);
         }
 
         return array_merge_recursive($this->options, $options);

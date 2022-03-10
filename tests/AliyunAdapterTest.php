@@ -4,6 +4,7 @@ namespace AlphaSnow\Flysystem\Aliyun\Tests;
 
 use AlphaSnow\Flysystem\Aliyun\AliyunException;
 use AlphaSnow\Flysystem\Aliyun\OssOptions;
+use AlphaSnow\Flysystem\Aliyun\UrlGenerator;
 use League\Flysystem\PathPrefixer;
 use League\Flysystem\UnableToCheckExistence;
 use League\Flysystem\UnableToCopyFile;
@@ -29,16 +30,26 @@ class AliyunAdapterTest extends TestCase
     private $accessKey = "access_secret";
     private $bucket = "bucket";
     private $endpoint = "endpoint.com";
+    private $prefix = "";
 
     public function aliyunProvider()
     {
+        $config = [
+            "access_key_id" => $this->accessId,
+            "access_key_secret" => $this->accessKey,
+            "endpoint" => $this->endpoint,
+            "bucket" => $this->bucket,
+            "prefix" => $this->prefix,
+        ];
+
+        $ossEndpoint = (new UrlGenerator($config))->getOssEndpoint();
         /**
          * @var $client OssClient
          */
-        $client = \Mockery::mock(OssClient::class, [$this->accessId,$this->accessKey,$this->endpoint])
+        $client = \Mockery::mock(OssClient::class, [$this->accessId,$this->accessKey,$ossEndpoint])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
-        $adapter = new AliyunAdapter($client, $this->bucket);
+        $adapter = new AliyunAdapter($client, $this->bucket, $this->prefix, $config);
         return [
             [$adapter,$client]
         ];
@@ -444,5 +455,32 @@ class AliyunAdapterTest extends TestCase
     {
         $prefixer = $adapter->getPrefixer();
         $this->assertInstanceOf(PathPrefixer::class, $prefixer);
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     */
+    public function testGetUrl($adapter)
+    {
+        $url = $adapter->getUrl("foo/bar.md");
+        $this->assertSame("http://bucket.endpoint.com/foo/bar.md", $url);
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testGetTemporaryUrl($adapter, $client)
+    {
+        $client->shouldReceive("signUrl")
+            ->andReturn("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************")
+            ->once();
+
+        $url = $adapter->getTemporaryUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')));
+        $this->assertSame("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************", $url);
     }
 }
