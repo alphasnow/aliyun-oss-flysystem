@@ -13,13 +13,7 @@ class OssOptions
     protected $options;
 
     /**
-     * @var VisibilityConverter
-     */
-    protected $visibility;
-
-    /**
      * @param array $options
-     * @param VisibilityConverter $visibility
      */
     public function __construct(array $options)
     {

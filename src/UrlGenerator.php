@@ -73,11 +73,11 @@ class UrlGenerator
      */
     public function getOssEndpoint(): string
     {
-        if ($internal = $this->config['internal']) {
-            return $internal;
+        if ($this->config['internal']) {
+            return $this->config['internal'];
         }
-        if ($domain = $this->config['domain'] && $this->config['reverse_proxy'] == false) {
-            return $domain;
+        if ($this->config['domain'] && $this->config['reverse_proxy'] == false) {
+            return $this->config['domain'];
         }
         return $this->config['endpoint'];
     }
