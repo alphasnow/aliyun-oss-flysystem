@@ -173,39 +173,22 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function deleteDirectory(string $path): void
     {
-        $directory = $this->prefixer->prefixDirectoryPath($path);
-        $options = array_merge(
-            $this->options->getOptions(),
-            [
-                OssClient::OSS_MARKER => '',
-                OssClient::OSS_PREFIX => $directory
-            ]
-        );
-
         try {
-            $bool = true;
-            while ($bool) {
-                $result = $this->client->listObjects($this->bucket, $options);
-                if (count($result->getObjectList()) > 0) {
-                    $objects = array();
-                    foreach ($result->getObjectList() as $info) {
-                        $objects[] = $info->getKey();
-                    }
-                    $this->client->deleteObjects($this->bucket, $objects, $options);
+            $contents = $this->listContents($path, false);
+            $files = [];
+            foreach ($contents as $content) {
+                if ($content instanceof DirectoryAttributes) {
+                    $this->deleteDirectory($content->path());
+                    continue;
                 }
-                if (count($result->getPrefixList()) > 0) {
-                    $objects = array();
-                    foreach ($result->getPrefixList() as $info) {
-                        $objects[] = $info->getPrefix();
-                    }
-                    $this->client->deleteObjects($this->bucket, $objects, $options);
-                }
-                if ($result->getIsTruncated() === 'true') {
-                    $option[OssClient::OSS_MARKER] = $result->getNextMarker();
-                } else {
-                    $bool = false;
+                $files[] = $this->prefixer->prefixPath($content->path());
+                if (count($files) >= 1000) {
+                    $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
+                    $files = [];
                 }
             }
+            $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
+            $this->client->deleteObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
             throw UnableToDeleteDirectory::atLocation($path, $exception->getErrorCode(), $exception);
         }
@@ -279,35 +262,21 @@ class AliyunAdapter implements FilesystemAdapter
     public function listContents(string $path, bool $deep): iterable
     {
         $directory = $this->prefixer->prefixDirectoryPath($path);
-
         $nextMarker = '';
         while (true) {
             $options = array_merge(
                 $this->options->getOptions(),
                 [
-                    OssClient::OSS_MARKER => $nextMarker,
-                    OssClient::OSS_PREFIX => $directory
+                    OssClient::OSS_PREFIX => $directory,
+                    OssClient::OSS_MARKER => $nextMarker
                 ]
             );
             try {
                 $listObjectInfo = $this->client->listObjects($this->bucket, $options);
+                $nextMarker = $listObjectInfo->getNextMarker();
             } catch (OssException $exception) {
                 throw new AliyunException($exception->getErrorMessage(), 0, $exception);
             }
-            $nextMarker = $listObjectInfo->getNextMarker();
-
-            $listObject = $listObjectInfo->getObjectList();
-            if (!empty($listObject)) {
-                foreach ($listObject as $objectInfo) {
-                    $objectPath = $this->prefixer->stripPrefix($objectInfo->getKey());
-                    $objectLastModified = strtotime($objectInfo->getLastModified());
-                    if (substr($objectPath, -1, 1) == '/') {
-                        continue;
-                    }
-                    yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
-                }
-            }
-
 
             $prefixList = $listObjectInfo->getPrefixList();
             foreach ($prefixList as $prefixInfo) {
@@ -321,6 +290,18 @@ class AliyunAdapter implements FilesystemAdapter
                     foreach ($contents as $content) {
                         yield $content;
                     }
+                }
+            }
+
+            $listObject = $listObjectInfo->getObjectList();
+            if (!empty($listObject)) {
+                foreach ($listObject as $objectInfo) {
+                    $objectPath = $this->prefixer->stripPrefix($objectInfo->getKey());
+                    $objectLastModified = strtotime($objectInfo->getLastModified());
+                    if (substr($objectPath, -1, 1) == '/') {
+                        continue;
+                    }
+                    yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
                 }
             }
 

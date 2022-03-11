@@ -9,7 +9,6 @@ use League\Flysystem\PathPrefixer;
 use League\Flysystem\UnableToCheckExistence;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
-use League\Flysystem\UnableToDeleteDirectory;
 use League\Flysystem\UnableToDeleteFile;
 use League\Flysystem\UnableToReadFile;
 use League\Flysystem\UnableToRetrieveMetadata;
@@ -175,8 +174,8 @@ class AliyunAdapterTest extends TestCase
      */
     public function testDeleteDirectory($adapter, $client)
     {
-        $this->expectException(UnableToDeleteDirectory::class);
-        $client->shouldReceive("deleteObjects")
+        $this->expectException(AliyunException::class);
+        $client->shouldReceive("listObjects")
             ->andThrow(new OssException("error"))
             ->once();
         $adapter->deleteDirectory("bar/");
