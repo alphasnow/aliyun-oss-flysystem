@@ -176,18 +176,18 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $contents = $this->listContents($path, false);
             $files = [];
-            foreach ($contents as $content) {
+            foreach ($contents as $i => $content) {
                 if ($content instanceof DirectoryAttributes) {
                     $this->deleteDirectory($content->path());
                     continue;
                 }
                 $files[] = $this->prefixer->prefixPath($content->path());
-                if (count($files) >= 1000) {
+                if ($i && $i % 100 == 0) {
                     $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
                     $files = [];
                 }
             }
-            $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
+            !empty($files) && $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
             $this->client->deleteObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
             throw UnableToDeleteDirectory::atLocation($path, $exception->getErrorCode(), $exception);
