@@ -298,7 +298,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
                 [
                    OssClient::OSS_PREFIX => $directory,
                    OssClient::OSS_MARKER => $nextMarker
-            ]
+                ]
             );
             $listObjectInfo = $this->client->listObjects($this->bucket, $options);
             $nextMarker = $listObjectInfo->getNextMarker();
@@ -310,17 +310,18 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
                     continue;
                 }
 
+                $nextPath = $this->removePathPrefix($nextDirectory);
                 $result[] = [
                     "type" => "dir",
-                    "path" => $nextDirectory,
+                    "path" => $nextPath,
                     "size" => 0,
                     "timestamp" => 0,
                     "mimetype" => "",
-                    "dirname" => $this->removePathPrefix($directory)
+                    "dirname" => dirname($nextPath) == "." ? "" : $nextPath
                 ];
 
                 if ($recursive) {
-                    $nextResult = $this->listContents($this->removePathPrefix($nextDirectory), $recursive);
+                    $nextResult = $this->listContents($nextPath, $recursive);
                     $result = array_merge($result, $nextResult);
                 }
             }
@@ -334,7 +335,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
 
                     $result[] = [
                         "type" => "file",
-                        "path" => $objectInfo->getKey(),
+                        "path" => $this->removePathPrefix($objectInfo->getKey()),
                         "size" => $objectInfo->getSize(),
                         "timestamp" => strtotime($objectInfo->getLastModified()),
                         "mimetype" => "",

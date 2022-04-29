@@ -46,10 +46,13 @@ $result = $flysystem->readStream('file.md');
 
 $result = $flysystem->createDir('foo/');
 $result = $flysystem->deleteDir('foo/');
+$result = $flysystem->write('bar/foo.md', 'contents');
+$result = $flysystem->write('bar/foo/file.md', 'contents');
+$result = $flysystem->deleteDir('bar/');
 $result = $flysystem->listContents('/');
 $result = $flysystem->listContents('/', true);
 
-$result = $flysystem->setVisibility('file.md', 'public');
+$result = $flysystem->setVisibility('file.md', 'private');
 $result = $flysystem->getVisibility('file.md');
 
 $result = $flysystem->getMetadata('file.md');

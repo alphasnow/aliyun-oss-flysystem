@@ -399,7 +399,7 @@ class AliyunOssAdapterTest extends TestCase
                 "size" => 0,
                 "timestamp" => 0,
                 "mimetype" => "",
-                "dirname" => "foo/"
+                "dirname" => "foo/baz/"
             ],
             [
                 "type" => "file",
