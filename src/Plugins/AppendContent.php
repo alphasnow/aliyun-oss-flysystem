@@ -9,7 +9,7 @@ class AppendContent extends AliyunOssAbstractPlugin
      */
     public function getMethod()
     {
-        return 'appendContent';
+        return "appendContent";
     }
 
     /**

@@ -11,7 +11,7 @@ class GetTemporaryUrl extends AliyunOssAbstractPlugin
      */
     public function getMethod()
     {
-        return 'getTemporaryUrl';
+        return "getTemporaryUrl";
     }
 
     /**

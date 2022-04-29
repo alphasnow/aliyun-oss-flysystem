@@ -179,7 +179,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
                 }
             }
             !empty($files) && $this->client->deleteObjects($this->bucket, $files, $this->options);
-            $this->client->deleteObject($this->bucket, $dirname, $this->options);
+            $this->client->deleteObject($this->bucket, $this->applyPathPrefix(rtrim($dirname, "/") . "/"), $this->options);
         } catch (OssException $exception) {
             $this->exception = $exception;
             return false;
@@ -289,7 +289,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
     public function listContents($directory = "", $recursive = false)
     {
         $directory = $this->applyPathPrefix(rtrim($directory, "/")."/");
-        $nextMarker = '';
+        $nextMarker = "";
 
         $result = [];
         while (true) {
@@ -312,10 +312,11 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
 
                 $result[] = [
                     "type" => "dir",
-                    "path" => $this->removePathPrefix($nextDirectory),
+                    "path" => $nextDirectory,
                     "size" => 0,
                     "timestamp" => 0,
-                    "mimetype" => ""
+                    "mimetype" => "",
+                    "dirname" => $this->removePathPrefix($directory)
                 ];
 
                 if ($recursive) {
@@ -327,22 +328,22 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
             $objectList = $listObjectInfo->getObjectList();
             if (!empty($objectList)) {
                 foreach ($objectList as $objectInfo) {
-                    $objectPath = $this->removePathPrefix($objectInfo->getKey());
-                    if (substr($objectPath, -1, 1) == '/') {
+                    if (substr($objectInfo->getKey(), -1, 1) == "/") {
                         continue;
                     }
 
                     $result[] = [
                         "type" => "file",
-                        "path" => $objectPath,
+                        "path" => $objectInfo->getKey(),
                         "size" => $objectInfo->getSize(),
                         "timestamp" => strtotime($objectInfo->getLastModified()),
-                        "mimetype" => ""
+                        "mimetype" => "",
+                        "dirname" => $this->removePathPrefix($directory)
                     ];
                 }
             }
 
-            if ($listObjectInfo->getIsTruncated() !== "true") {
+            if ($listObjectInfo->getIsTruncated() === "false") {
                 break;
             }
         }

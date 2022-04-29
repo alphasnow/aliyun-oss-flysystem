@@ -74,7 +74,7 @@ class AliyunOssAdapterTest extends TestCase
             ->andReturn(["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]])
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -91,7 +91,7 @@ class AliyunOssAdapterTest extends TestCase
             ->andThrow(new OssException("error"))
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -139,7 +139,7 @@ class AliyunOssAdapterTest extends TestCase
             ->andReturn(["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]])
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->updateStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -156,7 +156,7 @@ class AliyunOssAdapterTest extends TestCase
             ->andThrow(new OssException("error"))
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -362,7 +362,7 @@ class AliyunOssAdapterTest extends TestCase
 
         $result = $adapter->readStream("foo/bar.md");
 
-        $this->assertTrue(is_resource($result['stream']));
+        $this->assertTrue(is_resource($result["stream"]));
     }
 
     /**
@@ -398,14 +398,16 @@ class AliyunOssAdapterTest extends TestCase
                 "path" => "foo/baz/",
                 "size" => 0,
                 "timestamp" => 0,
-                'mimetype' => ''
+                "mimetype" => "",
+                "dirname" => "foo/"
             ],
             [
                 "type" => "file",
                 "path" => "foo/bar.md",
                 "size" => 7,
                 "timestamp" => $file["timestamp"],
-                'mimetype' => ''
+                "mimetype" => "",
+                "dirname" => "foo/"
             ]
         ], $result);
     }
@@ -547,11 +549,11 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testGetException($adapter, $client)
     {
-        $errorException = new OssException('error');
+        $errorException = new OssException("error");
         $client->shouldReceive("getObject")
             ->andThrow($errorException);
 
-        $result = $adapter->read('none.md');
+        $result = $adapter->read("none.md");
         $exception = $adapter->getException();
 
         $this->assertFalse($result);
