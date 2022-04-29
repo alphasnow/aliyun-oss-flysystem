@@ -49,8 +49,8 @@ class AliyunOssAdapterTest extends TestCase
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 7,
+            "timestamp" => 1623292940,
             "mimetype" => "application/octet-stream",
         ], $result);
 
@@ -82,8 +82,8 @@ class AliyunOssAdapterTest extends TestCase
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 7,
+            "timestamp" => 1623292940,
             "mimetype" => "application/octet-stream",
         ], $result);
 
@@ -114,8 +114,8 @@ class AliyunOssAdapterTest extends TestCase
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 6,
+            "timestamp" => 1623292940,
             "mimetype" => "application/octet-stream",
         ], $result);
 
@@ -147,8 +147,8 @@ class AliyunOssAdapterTest extends TestCase
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 7,
+            "timestamp" => 1623292940,
             "mimetype" => "application/octet-stream",
         ], $result);
 
@@ -257,13 +257,14 @@ class AliyunOssAdapterTest extends TestCase
                 "standard"
             )],
             "getPrefixList" => [],
-            "getNextMarker" => ""
+            "getNextMarker" => "",
+            "getIsTruncated" => "false"
         ]);
         $client->allows([
             "listObjects" => $listObjects,
-            "deleteObjects" => null
+            "deleteObjects" => null,
+            "deleteObject" => null
         ]);
-
 
         $result = $adapter->deleteDir("foo/");
         $this->assertTrue($result);
@@ -382,7 +383,8 @@ class AliyunOssAdapterTest extends TestCase
                 "standard"
             )],
             "getPrefixList" => [new PrefixInfo("foo/baz/")],
-            "getNextMarker" => ""
+            "getNextMarker" => "",
+            "getIsTruncated" => "false"
         ]);
         $client->allows([
             "listObjects" => $listObjects
@@ -392,16 +394,18 @@ class AliyunOssAdapterTest extends TestCase
         $result = $adapter->listContents("foo/");
         $this->assertSame([
             [
-                "type" => "file",
-                "path" => "foo/bar.md",
-                "size" => 7,
-                "timestamp" => $file["timestamp"]
-            ],
-            [
                 "type" => "dir",
                 "path" => "foo/baz/",
                 "size" => 0,
-                "timestamp" => 0
+                "timestamp" => 0,
+                'mimetype' => ''
+            ],
+            [
+                "type" => "file",
+                "path" => "foo/bar.md",
+                "size" => 7,
+                "timestamp" => $file["timestamp"],
+                'mimetype' => ''
             ]
         ], $result);
     }
@@ -415,14 +419,14 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetMetadata($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7,"filetime" => 1623292940,"content_type" => "application/octet-stream"]]);
+            ->andReturn(["content-length" => "7","last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT","content-type" => "application/octet-stream"]);
 
         $result = $adapter->getMetadata("foo/bar.md");
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 7,
-            "timestamp" => 1623292940,
+            "timestamp" => 1646815258,
             "mimetype" => "application/octet-stream"
         ], $result);
     }
@@ -436,7 +440,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetSize($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
+            ->andReturn(["content-length" => "7","last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT","content-type" => "application/octet-stream"]);
 
         $result = $adapter->getSize("foo/bar.md");
         $this->assertSame([
@@ -453,7 +457,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetMimetype($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7.0,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
+            ->andReturn(["content-length" => "7","last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT","content-type" => "application/octet-stream"]);
 
         $result = $adapter->getMimetype("foo/bar.md");
         $this->assertSame([
@@ -470,11 +474,11 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetTimestamp($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7.0,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
+            ->andReturn(["content-length" => "7","last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT","content-type" => "application/octet-stream"]);
 
         $result = $adapter->getTimestamp("foo/bar.md");
         $this->assertSame([
-            "timestamp" => 1623292940,
+            "timestamp" => 1646815258,
         ], $result);
     }
 

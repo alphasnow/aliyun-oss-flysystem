@@ -72,8 +72,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         return [
             "type" => "file",
             "path" => $path,
-            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
             "size" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_LENGTH]) ? intval($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_LENGTH]) : 0,
+            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
             "mimetype" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE]) ? $result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE] : ""
         ];
     }
@@ -96,8 +96,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         return [
             "type" => "file",
             "path" => $path,
-            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
             "size" => isset($result["info"]["upload_content_length"]) ? intval($result["info"]["upload_content_length"]) : 0,
+            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
             "mimetype" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE]) ? $result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE] : ""
         ];
     }
@@ -164,21 +164,22 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
      */
     public function deleteDir($dirname)
     {
-        $list = $this->listContents($dirname, true);
-
-        $objects = [];
-        foreach ($list as $val) {
-            if ($val["type"] === "dir") {
-                $path = rtrim($val["path"], "/") . "/";
-            } else {
-                $path = $val["path"];
-            }
-
-            $objects[] = $this->applyPathPrefix($path);
-        }
-
         try {
-            $this->client->deleteObjects($this->bucket, $objects, $this->options);
+            $contents = $this->listContents($dirname, true);
+            $files = [];
+            foreach ($contents as $i => $content) {
+                if ($content["type"] === "dir") {
+                    $this->deleteDir($content["path"]);
+                    continue;
+                }
+                $files[] = $this->applyPathPrefix($content["path"]);
+                if ($i && $i % 1000 == 0) {
+                    $this->client->deleteObjects($this->bucket, $files, $this->options);
+                    $files = [];
+                }
+            }
+            !empty($files) && $this->client->deleteObjects($this->bucket, $files, $this->options);
+            $this->client->deleteObject($this->bucket, $dirname, $this->options);
         } catch (OssException $exception) {
             $this->exception = $exception;
             return false;
@@ -288,41 +289,19 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
     public function listContents($directory = "", $recursive = false)
     {
         $directory = $this->applyPathPrefix(rtrim($directory, "/")."/");
-
-        $options = array_merge([
-            "delimiter" => "/",
-            "max-keys" => 1000,
-            "marker" => "",
-        ], $this->options, [
-            "prefix" => $directory
-        ]);
+        $nextMarker = '';
 
         $result = [];
-
         while (true) {
+            $options = array_merge(
+                $this->options,
+                [
+                   OssClient::OSS_PREFIX => $directory,
+                   OssClient::OSS_MARKER => $nextMarker
+            ]
+            );
             $listObjectInfo = $this->client->listObjects($this->bucket, $options);
-
-            $objectList = $listObjectInfo->getObjectList();
-            if (!empty($objectList)) {
-                foreach ($objectList as $objectInfo) {
-                    if ($objectInfo->getSize() === 0 && $directory === $objectInfo->getKey()) {
-                        $result[] = [
-                            "type" => "dir",
-                            "path" => $this->removePathPrefix(rtrim($objectInfo->getKey(), "/")."/"),
-                            "size" => 0,
-                            "timestamp" => strtotime($objectInfo->getLastModified()),
-                        ];
-                        continue;
-                    }
-
-                    $result[] = [
-                        "type" => "file",
-                        "path" => $this->removePathPrefix($objectInfo->getKey()),
-                        "size" => $objectInfo->getSize(),
-                        "timestamp" => strtotime($objectInfo->getLastModified())
-                    ];
-                }
-            }
+            $nextMarker = $listObjectInfo->getNextMarker();
 
             $prefixList = $listObjectInfo->getPrefixList();
             foreach ($prefixList as $prefixInfo) {
@@ -330,22 +309,40 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
                 if ($nextDirectory == $directory) {
                     continue;
                 }
+
+                $result[] = [
+                    "type" => "dir",
+                    "path" => $this->removePathPrefix($nextDirectory),
+                    "size" => 0,
+                    "timestamp" => 0,
+                    "mimetype" => ""
+                ];
+
                 if ($recursive) {
                     $nextResult = $this->listContents($this->removePathPrefix($nextDirectory), $recursive);
                     $result = array_merge($result, $nextResult);
-                } else {
+                }
+            }
+
+            $objectList = $listObjectInfo->getObjectList();
+            if (!empty($objectList)) {
+                foreach ($objectList as $objectInfo) {
+                    $objectPath = $this->removePathPrefix($objectInfo->getKey());
+                    if (substr($objectPath, -1, 1) == '/') {
+                        continue;
+                    }
+
                     $result[] = [
-                        "type" => "dir",
-                        "path" => $this->removePathPrefix($nextDirectory),
-                        "size" => 0,
-                        "timestamp" => 0,
+                        "type" => "file",
+                        "path" => $objectPath,
+                        "size" => $objectInfo->getSize(),
+                        "timestamp" => strtotime($objectInfo->getLastModified()),
+                        "mimetype" => ""
                     ];
                 }
             }
 
-            $nextMarker = $listObjectInfo->getNextMarker();
-            $options["marker"] = $nextMarker;
-            if ($nextMarker === "") {
+            if ($listObjectInfo->getIsTruncated() !== "true") {
                 break;
             }
         }
@@ -370,9 +367,9 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         return [
             "type" => "file",
             "path" => $path,
-            "size" => isset($result["info"]["download_content_length"]) ? intval($result["info"]["download_content_length"]) : 0,
-            "timestamp" => isset($result["info"]["filetime"]) ? $result["info"]["filetime"] : 0,
-            "mimetype" => isset($result["info"]["content_type"]) ? $result["info"]["content_type"] : ""
+            "size" => isset($result["content-length"]) ? intval($result["content-length"]) : 0,
+            "timestamp" => isset($result["last-modified"]) ? strtotime($result["last-modified"]) : 0,
+            "mimetype" => isset($result["content-type"]) ? $result["content-type"] : ""
         ];
     }
 
@@ -428,14 +425,14 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         $options = $config->get("options", []);
 
         if ($headers = $config->get("headers")) {
-            $options[OssClient::OSS_HEADERS] = $headers;
+            $options[OssClient::OSS_HEADERS] = isset($options[OssClient::OSS_HEADERS]) ? array_merge($options[OssClient::OSS_HEADERS], $headers) : $headers;
         }
 
         if ($visibility = $config->get("visibility")) {
             $options[OssClient::OSS_HEADERS][OssClient::OSS_OBJECT_ACL] = $this->visibilityToAcl($visibility);
         }
 
-        return array_merge($this->options, $options);
+        return array_merge_recursive($this->options, $options);
     }
 
     /**
