@@ -1,6 +1,6 @@
 # Aliyun OSS Flysystem
 
-💾 Flysystem Adapter for [Aliyun Object Storage Service](http://oss.aliyun.com).
+💾 Flysystem Adapter for [Aliyun Object Storage Service](https://www.alibabacloud.com/help/en/object-storage-service).
 
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Total Downloads](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/downloads)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)

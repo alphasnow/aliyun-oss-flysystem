@@ -404,13 +404,8 @@ class AliyunAdapter implements FilesystemAdapter
         $options = $this->options->mergeConfig(new Config($options));
         $timeout = $expiration->getTimestamp() - (new \DateTime())->getTimestamp();
 
-        $httpMethod = OssClient::OSS_HTTP_GET;
-        if(isset($options['HTTP_METHOD'])){
-            $httpMethod = $options['HTTP_METHOD'];
-            unset($options['HTTP_METHOD']);
-        }
-
-        $url = $this->client->signUrl($this->bucket, $object, $timeout, $httpMethod, $options);
+        $method = $options[OssClient::OSS_METHOD] ?? OssClient::OSS_HTTP_GET;
+        $url = $this->client->signUrl($this->bucket, $object, $timeout, $method, $options);
         return $this->urlGenerator->correctDomain($url);
     }
 }

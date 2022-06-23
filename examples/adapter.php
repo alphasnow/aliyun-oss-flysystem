@@ -12,5 +12,5 @@ $adapter = (new AliyunFactory())->createAdapter($config);
 $url = $adapter->getUrl("foo/bar.md");
 print_r($url);
 
-$tempUrl = $adapter->getTemporaryUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')));
+$tempUrl = $adapter->getTemporaryUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')), ["options" => ["method" => "PUT"]]);
 print_r($url);
