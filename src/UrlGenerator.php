@@ -8,12 +8,12 @@ class UrlGenerator
      * @var array
      */
     protected array $config = [
-        'bucket' => null,
-        'endpoint' => null,
-        'internal' => null,
-        'domain' => null,
-        'use_ssl' => false,
-        'reverse_proxy' => false,
+        "bucket" => null,
+        "endpoint" => null,
+        "internal" => null,
+        "domain" => null,
+        "use_ssl" => false,
+        "reverse_proxy" => false,
     ];
 
     /**
@@ -30,7 +30,7 @@ class UrlGenerator
      */
     public function fullUrl(string $path): string
     {
-        return $this->getDomain() . '/' . ltrim($path, '/');
+        return $this->getDomain() . "/" . ltrim($path, "/");
     }
 
     /**
@@ -38,8 +38,8 @@ class UrlGenerator
      */
     protected function getDomain(): string
     {
-        if ($this->config['domain']) {
-            return $this->getProtocol() . '://' . $this->config['domain'];
+        if ($this->config["domain"]) {
+            return $this->getProtocol() . "://" . $this->config["domain"];
         }
         return $this->getEndpointDomain();
     }
@@ -49,7 +49,7 @@ class UrlGenerator
      */
     protected function getEndpointDomain(): string
     {
-        return $this->getProtocol() . '://' . $this->config['bucket'] . '.' . $this->config['endpoint'];
+        return $this->getProtocol() . "://" . $this->config["bucket"] . "." . $this->config["endpoint"];
     }
 
     /**
@@ -57,7 +57,7 @@ class UrlGenerator
      */
     protected function getInternalDomain(): string
     {
-        return $this->getProtocol() . '://' . $this->config['bucket'] . '.' . $this->config['internal'];
+        return $this->getProtocol() . "://" . $this->config["bucket"] . "." . $this->config["internal"];
     }
 
     /**
@@ -65,7 +65,7 @@ class UrlGenerator
      */
     protected function getProtocol(): string
     {
-        return $this->config['use_ssl'] ? 'https' : 'http';
+        return $this->config["use_ssl"] ? "https" : "http";
     }
 
     /**
@@ -73,13 +73,13 @@ class UrlGenerator
      */
     public function getOssEndpoint(): string
     {
-        if ($this->config['internal']) {
-            return $this->config['internal'] ?: "";
+        if ($this->config["internal"]) {
+            return $this->config["internal"] ?: "";
         }
-        if ($this->config['domain'] && $this->config['reverse_proxy'] == false) {
-            return $this->config['domain'] ?: "";
+        if ($this->config["domain"] && $this->config["reverse_proxy"] == false) {
+            return $this->config["domain"] ?: "";
         }
-        return $this->config['endpoint'] ?: "";
+        return $this->config["endpoint"] ?: "";
     }
 
     /**
@@ -88,11 +88,11 @@ class UrlGenerator
      */
     public function correctDomain(string $url): string
     {
-        if ($this->config['internal']) {
+        if ($this->config["internal"]) {
             return str_replace($this->getInternalDomain(), $this->getDomain(), $url);
         }
 
-        if ($this->config['domain']) {
+        if ($this->config["domain"]) {
             return str_replace($this->getEndpointDomain(), $this->getDomain(), $url);
         }
 

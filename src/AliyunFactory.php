@@ -15,7 +15,7 @@ class AliyunFactory
     public function createAdapter(array $config, OssClient $client = null): AliyunAdapter
     {
         is_null($client) && $client = $this->createClient($config);
-        return new AliyunAdapter($client, $config['bucket'], $config['prefix'] ?? "", $config);
+        return new AliyunAdapter($client, $config["bucket"], $config["prefix"] ?? "", $config);
     }
 
     /**
@@ -36,7 +36,7 @@ class AliyunFactory
     public function createClient(array $config): OssClient
     {
         $ossEndpoint = (new UrlGenerator($config))->getOssEndpoint();
-        $client = new OssClient($config['access_key_id'], $config['access_key_secret'], $ossEndpoint, $config['is_cname'] ?? false, $config['security_token'] ?? null, $config['request_proxy'] ?? null);
+        $client = new OssClient($config["access_key_id"], $config["access_key_secret"], $ossEndpoint, $config["is_cname"] ?? false, $config["security_token"] ?? null, $config["request_proxy"] ?? null);
         isset($config["use_ssl"]) && !is_null($config["use_ssl"]) && $client->setUseSSL($config["use_ssl"]);
         isset($config["max_retries"]) && !is_null($config["max_retries"]) && $client->setMaxTries($config["max_retries"]);
         isset($config["enable_sts_in_url"]) && !is_null($config["enable_sts_in_url"]) && $client->setSignStsInUrl($config["enable_sts_in_url"]);

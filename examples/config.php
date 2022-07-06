@@ -17,7 +17,7 @@ return [
     "options" => [
         // \OSS\OssClient::OSS_CHECK_MD5 => false,
     ],
-    'internal' => getenv('OSS_INTERNAL', null), // For example: oss-cn-shanghai-internal.aliyuncs.com
-    'domain' => getenv('OSS_DOMAIN', null), // For example: oss.my-domain.com
-    "reverse_proxy" => getenv('OSS_REVERSE_PROXY', false),
+    "internal" => getenv("OSS_INTERNAL", null), // For example: oss-cn-shanghai-internal.aliyuncs.com
+    "domain" => getenv("OSS_DOMAIN", null), // For example: oss.my-domain.com
+    "reverse_proxy" => getenv("OSS_REVERSE_PROXY", false),
 ];

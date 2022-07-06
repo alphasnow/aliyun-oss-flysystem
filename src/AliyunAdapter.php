@@ -73,7 +73,7 @@ class AliyunAdapter implements FilesystemAdapter
         $this->prefixer = new PathPrefixer($prefix);
         $this->config = $config;
         $this->visibility = new VisibilityConverter();
-        $this->options = new OssOptions($config['options'] ?? []);
+        $this->options = new OssOptions($config["options"] ?? []);
         $this->urlGenerator = new UrlGenerator($config);
     }
 
@@ -262,7 +262,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function listContents(string $path, bool $deep): iterable
     {
         $directory = $this->prefixer->prefixDirectoryPath($path);
-        $nextMarker = '';
+        $nextMarker = "";
         while (true) {
             $options = array_merge(
                 $this->options->getOptions(),
@@ -298,7 +298,7 @@ class AliyunAdapter implements FilesystemAdapter
                 foreach ($listObject as $objectInfo) {
                     $objectPath = $this->prefixer->stripPrefix($objectInfo->getKey());
                     $objectLastModified = strtotime($objectInfo->getLastModified());
-                    if (substr($objectPath, -1, 1) == '/') {
+                    if (substr($objectPath, -1, 1) == "/") {
                         continue;
                     }
                     yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);

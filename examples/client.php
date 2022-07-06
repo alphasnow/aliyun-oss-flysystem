@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . "/../vendor/autoload.php";
 
 use AlphaSnow\Flysystem\Aliyun\AliyunFactory;
 
@@ -9,5 +9,5 @@ $config = require __DIR__ . "/config.php";
 
 $client = (new AliyunFactory())->createClient($config);
 
-$res = $client->getBucketInfo($config['bucket']);
+$res = $client->getBucketInfo($config["bucket"]);
 print_r($res);
