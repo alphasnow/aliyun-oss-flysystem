@@ -76,7 +76,7 @@ $flysystem->write("file.md", "contents", [
     "options" => ["checkmd5" => false]
 ]);
 $flysystem->write("bar.md", "contents", [
-    "headers" => ["Content-Disposition" => "attachment;filename=file.md"]
+    "headers" => ["Content-Disposition" => "attachment;filename=bar.md"]
 ]);
 $flysystem->write("baz.md", "contents", [
     "visibility" => "private"
