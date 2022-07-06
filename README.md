@@ -43,8 +43,8 @@ $config = [
     ]
 ];
 
-$client = new OssClient($config['access_id'], $config['access_key'], $config['endpoint']);
-$adapter = new AliyunOssAdapter($client, $config['bucket'], $config['prefix'], $config['options']);
+$client = new OssClient($config["access_id"], $config["access_key"], $config["endpoint"]);
+$adapter = new AliyunOssAdapter($client, $config["bucket"], $config["prefix"], $config["options"]);
 $flysystem = new Filesystem($adapter, ["disable_asserts" => true,"case_sensitive" => true]);
 $flysystem->addPlugin(new AppendContent());
 $flysystem->addPlugin(new GetTemporaryUrl());
@@ -52,59 +52,63 @@ $flysystem->addPlugin(new GetTemporaryUrl());
 
 ### Methods
 ```php
-$flysystem->write('file.md', 'contents');
-$flysystem->writeStream('file.md', fopen('file.md', 'r'));
-$flysystem->update('file.md', 'new contents');
-$flysystem->updateStream('file.md', fopen('file.md', 'r'));
-$flysystem->put('file.md', 'contents');
-$flysystem->putStream('file.md', fopen('file.md', 'r'));
+$flysystem->write("file.md", "contents");
+$flysystem->writeStream("file.md", fopen("file.md", "r"));
+$flysystem->update("file.md", "new contents");
+$flysystem->updateStream("file.md", fopen("file.md", "r"));
+$flysystem->put("file.md", "contents");
+$flysystem->putStream("file.md", fopen("file.md", "r"));
 
-$flysystem->rename('baz.md', 'bar.md');
-$flysystem->copy('foo.md', 'baz.md');
-$flysystem->delete('bar.md');
-$flysystem->has('bar.md');
+$flysystem->rename("baz.md", "bar.md");
+$flysystem->copy("foo.md", "baz.md");
+$flysystem->delete("bar.md");
+$flysystem->has("bar.md");
 
-$flysystem->read('file.md');
-$flysystem->readStream('file.md');
-$flysystem->readAndDelete('file.md');
+$flysystem->read("file.md");
+$flysystem->readStream("file.md");
+$flysystem->readAndDelete("file.md");
 
-$flysystem->listContents('/');
-$flysystem->listContents('/',true);
+$flysystem->listContents("/");
+$flysystem->listContents("/",true);
 
-$flysystem->createDir('foo/');
-$flysystem->deleteDir('foo/');
+$flysystem->createDir("foo/");
+$flysystem->deleteDir("foo/");
 
-$flysystem->setVisibility('foo/bar','public');
-$flysystem->getVisibility('foo/bar');
+$flysystem->setVisibility("foo/bar","public");
+$flysystem->getVisibility("foo/bar");
 
-$flysystem->getMetadata('file.md');
-$flysystem->getSize('file.md');
-$flysystem->getMimetype('file.md');
-$flysystem->getTimestamp('file.md');
+$flysystem->getMetadata("file.md");
+$flysystem->getSize("file.md");
+$flysystem->getMimetype("file.md");
+$flysystem->getTimestamp("file.md");
 ```
 
 ### Plugins
 ```php
-$flysystem->appendContent('foo.md', 'contents', 0);
-$flysystem->getTemporaryUrl('foo.md', 3600);
+$flysystem->appendContent("foo.md", "contents", 0);
+$flysystem->getTemporaryUrl("foo.md", 3600);
 ```
 
 ### Options
 ```php
-$flysystem->write('file.md', 'contents', [
+$flysystem->write("file.md", "contents", [
     "options" => ["length" => 8]
 ]);
-$flysystem->write('file.md', 'contents', [
-    "headers" => ["Content-Disposition" => "attachment; filename=file.md"]
+$flysystem->write("file.md", "contents", [
+    "headers" => ["Content-Disposition" => "attachment;filename=file.md"]
 ]);
-$flysystem->write('file.md', 'contents', [
+$flysystem->write("file.md", "contents", [
     "visibility" => "private"
 ]);
+```
+### Client
+```php
+$client = $flysystem->getAdapter()->getClient();
 ```
 
 ### Exception
 ```php
-$flysystem->getMetadata('none.md');
+$flysystem->getMetadata("none.md");
 $exception = $flysystem->getAdapter()->getException();
 ```
 

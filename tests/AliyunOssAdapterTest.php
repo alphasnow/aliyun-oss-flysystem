@@ -50,8 +50,7 @@ class AliyunOssAdapterTest extends TestCase
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 7,
-            "timestamp" => 1623292940,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("putObject")
@@ -83,8 +82,7 @@ class AliyunOssAdapterTest extends TestCase
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 7,
-            "timestamp" => 1623292940,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("uploadStream")
@@ -115,8 +113,7 @@ class AliyunOssAdapterTest extends TestCase
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 6,
-            "timestamp" => 1623292940,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("putObject")
@@ -148,8 +145,7 @@ class AliyunOssAdapterTest extends TestCase
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 7,
-            "timestamp" => 1623292940,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("uploadStream")
@@ -397,16 +393,16 @@ class AliyunOssAdapterTest extends TestCase
                 "type" => "dir",
                 "path" => "foo/baz/",
                 "size" => 0,
-                "timestamp" => 0,
                 "mimetype" => "",
+                "timestamp" => 0,
                 "dirname" => "foo/baz/"
             ],
             [
                 "type" => "file",
                 "path" => "foo/bar.md",
                 "size" => 7,
-                "timestamp" => $file["timestamp"],
                 "mimetype" => "",
+                "timestamp" => $file["timestamp"],
                 "dirname" => "foo/"
             ]
         ], $result);
@@ -428,8 +424,8 @@ class AliyunOssAdapterTest extends TestCase
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 7,
-            "timestamp" => 1646815258,
-            "mimetype" => "application/octet-stream"
+            "mimetype" => "application/octet-stream",
+            "timestamp" => 1646815258
         ], $result);
     }
 

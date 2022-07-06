@@ -6,16 +6,10 @@ use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Adapter\CanOverwriteFiles;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
+use League\Flysystem\Util;
 use OSS\Core\OssException;
 use OSS\OssClient;
 
-/**
- * Here is some example file meta data
- * ["type"=>"file","path"=>"/foo/bar/qux.md","timestamp"=>1623289297,"size"=>1024]
- * ["type"=>"dir","path"=>"/foo/bar/","timestamp"=>0,"size"=>0]
- *
- * @package AlphaSnow\Flysystem\AliyunOss
- */
 class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, AliyunOssAdapterInterface, AliyunOssFactoryInterface
 {
     const OSS_REQUEST_HEADERS = "oss-requestheaders";
@@ -46,7 +40,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
      * @param string $prefix
      * @param array $options
      */
-    public function __construct(OssClient $client, $bucket, $prefix = null, array $options = [])
+    public function __construct(OssClient $client, $bucket, $prefix = "", array $options = [])
     {
         $this->client = $client;
         $this->bucket = $bucket;
@@ -62,8 +56,15 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         $object = $this->applyPathPrefix($path);
         $options = $this->getOptionsFromConfig($config);
 
+        if (!isset($options[OssClient::OSS_LENGTH])) {
+            $options[OssClient::OSS_LENGTH] = Util::contentSize($contents);
+        }
+        if (!isset($options[OssClient::OSS_CONTENT_TYPE])) {
+            $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $contents);
+        }
+
         try {
-            $result = $this->client->putObject($this->bucket, $object, $contents, $options);
+            $this->client->putObject($this->bucket, $object, $contents, $options);
         } catch (OssException $exception) {
             $this->exception = $exception;
             return false;
@@ -72,9 +73,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         return [
             "type" => "file",
             "path" => $path,
-            "size" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_LENGTH]) ? intval($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_LENGTH]) : 0,
-            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
-            "mimetype" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE]) ? $result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE] : ""
+            "size" => $options[OssClient::OSS_LENGTH],
+            "mimetype" => $options[OssClient::OSS_CONTENT_TYPE]
         ];
     }
 
@@ -86,8 +86,15 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         $object = $this->applyPathPrefix($path);
         $options = $this->getOptionsFromConfig($config);
 
+        if (!isset($options[OssClient::OSS_LENGTH])) {
+            $options[OssClient::OSS_LENGTH] = Util::getStreamSize($resource);
+        }
+        if (!isset($options[OssClient::OSS_CONTENT_TYPE])) {
+            $options[OssClient::OSS_CONTENT_TYPE] = Util::guessMimeType($path, $resource);
+        }
+
         try {
-            $result = $this->client->uploadStream($this->bucket, $object, $resource, $options);
+            $this->client->uploadStream($this->bucket, $object, $resource, $options);
         } catch (OssException $exception) {
             $this->exception = $exception;
             return false;
@@ -96,9 +103,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
         return [
             "type" => "file",
             "path" => $path,
-            "size" => isset($result["info"]["upload_content_length"]) ? intval($result["info"]["upload_content_length"]) : 0,
-            "timestamp" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) ? strtotime($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_DATE]) : 0,
-            "mimetype" => isset($result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE]) ? $result[self::OSS_REQUEST_HEADERS][OssClient::OSS_CONTENT_TYPE] : ""
+            "size" => $options[OssClient::OSS_LENGTH],
+            "mimetype" => $options[OssClient::OSS_CONTENT_TYPE]
         ];
     }
 
@@ -140,6 +146,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
             $this->exception = $exception;
             return false;
         }
+
         return true;
     }
 
@@ -156,6 +163,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
             $this->exception = $exception;
             return false;
         }
+
         return true;
     }
 
@@ -184,6 +192,7 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
             $this->exception = $exception;
             return false;
         }
+
         return true;
     }
 
@@ -315,8 +324,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
                     "type" => "dir",
                     "path" => $nextPath,
                     "size" => 0,
-                    "timestamp" => 0,
                     "mimetype" => "",
+                    "timestamp" => 0,
                     "dirname" => dirname($nextPath) == "." ? "" : $nextPath
                 ];
 
@@ -337,8 +346,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
                         "type" => "file",
                         "path" => $this->removePathPrefix($objectInfo->getKey()),
                         "size" => $objectInfo->getSize(),
-                        "timestamp" => strtotime($objectInfo->getLastModified()),
                         "mimetype" => "",
+                        "timestamp" => strtotime($objectInfo->getLastModified()),
                         "dirname" => $this->removePathPrefix($directory)
                     ];
                 }
@@ -370,8 +379,8 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
             "type" => "file",
             "path" => $path,
             "size" => isset($result["content-length"]) ? intval($result["content-length"]) : 0,
-            "timestamp" => isset($result["last-modified"]) ? strtotime($result["last-modified"]) : 0,
-            "mimetype" => isset($result["content-type"]) ? $result["content-type"] : ""
+            "mimetype" => isset($result["content-type"]) ? $result["content-type"] : "",
+            "timestamp" => isset($result["last-modified"]) ? strtotime($result["last-modified"]) : 0
         ];
     }
 
@@ -502,16 +511,20 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
      * @param string $accessKey
      * @param string $endpoint
      * @param string $bucket
-     * @param string|null $prefix
+     * @param string $prefix
      * @param array $options
      * @return static
      * @throws \OSS\Core\OssException
      */
-    public static function create($accessId, $accessKey, $endpoint, $bucket, $prefix = null, array $options = [])
+    public static function create($accessId, $accessKey, $endpoint, $bucket, $prefix = "", array $options = [])
     {
-        $isCName = isset($options["is_cname"]) ? $options["is_cname"] : false;
-        $securityToken = isset($options["security_token"]) ? $options["security_token"] : null;
-        $requestProxy = isset($options["request_proxy"]) ? $options["request_proxy"] : null;
-        return new static(new OssClient($accessId, $accessKey, $endpoint, $isCName, $securityToken, $requestProxy),$bucket,$prefix,$options);
+        $client = new OssClient($accessId, $accessKey, $endpoint, $options["is_cname"] ?? false, $options["security_token"] ?? null, $options["request_proxy"] ?? null);
+        isset($options["use_ssl"]) && !is_null($options["use_ssl"]) && $client->setUseSSL($options["use_ssl"]);
+        isset($options["max_retries"]) && !is_null($options["max_retries"]) && $client->setMaxTries($options["max_retries"]);
+        isset($options["enable_sts_in_url"]) && !is_null($options["enable_sts_in_url"]) && $client->setSignStsInUrl($options["enable_sts_in_url"]);
+        isset($options["timeout"]) && !is_null($options["timeout"]) && $client->setTimeout($options["timeout"]);
+        isset($options["connect_timeout"]) && !is_null($options["connect_timeout"]) && $client->setConnectTimeout($options["connect_timeout"]);
+
+        return new static($client,$bucket,$prefix,$options);
     }
 }
