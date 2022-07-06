@@ -76,7 +76,7 @@ $flysystem->write('file.md', 'contents', [
     "options" => [OssClient::OSS_CHECK_MD5 => false]
 ]);
 $flysystem->write('bar.md', 'contents', [
-    "headers" => ["Content-Disposition" => "attachment; filename=file.md"]
+    "headers" => ["Content-Disposition" => "attachment;filename=file.md"]
 ]);
 $flysystem->write('baz.md', 'contents', [
     "visibility" => "private"
