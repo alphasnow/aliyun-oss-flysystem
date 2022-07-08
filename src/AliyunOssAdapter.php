@@ -10,17 +10,8 @@ use League\Flysystem\Config;
 use OSS\Core\OssException;
 use OSS\OssClient;
 
-/**
- * Here is some example file meta data
- * ["type"=>"file","path"=>"/foo/bar/qux.md","timestamp"=>1623289297,"size"=>1024]
- * ["type"=>"dir","path"=>"/foo/bar/","timestamp"=>0,"size"=>0]
- *
- * @package AlphaSnow\Flysystem\AliyunOss
- */
 class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles
 {
-    const OSS_REQUEST_HEADERS = "oss-requestheaders";
-
     /**
      * @var OssClient
      */
