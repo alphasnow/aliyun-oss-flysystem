@@ -5,7 +5,6 @@
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Code Coverage](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/alphasnow/aliyun-oss-flysystem/?branch=master)
 [![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem?ref=badge_shield)
 
 ## Requirement
 
@@ -28,7 +27,7 @@ $config = [
     "access_id" => "LTAI4**************qgcsA",        // Required, AccessKey 
     "access_key"=> "PkT4F********************Bl9or",  // Required, AccessKey Key Secret
     "endpoint"  => "oss-cn-shanghai.aliyuncs.com",    // Required, Endpoint
-    "bucket"    => "my-storage"                       // Required, Bucket
+    "bucket"    => "my-storage",                      // Required, Bucket
     "prefix"    => "",
     "options"   => [
         "is_cname"       => false,
@@ -78,7 +77,7 @@ $flysystem->write('file.md', 'contents', [
     "options" => ["length" => 8]
 ]);
 $flysystem->write('file.md', 'contents', [
-    "headers" => ["Content-Disposition" => "attachment; filename=file.md"]
+    "headers" => ["Content-Disposition" => "attachment;filename=file.md"]
 ]);
 $flysystem->write('file.md', 'contents', [
     "visibility" => "private"
@@ -97,5 +96,3 @@ $exception = $flysystem->getAdapter()->getException();
 
 ## License
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Falphasnow%2Faliyun-oss-flysystem?ref=badge_large)

@@ -43,7 +43,7 @@ $result = $flysystem->write('file.md', 'contents', [
     "options" => ["length" => 8]
 ]);
 $result = $flysystem->write('file.md', 'contents', [
-    "headers" => ["Content-Disposition" => "attachment; filename=file.md"]
+    "headers" => ["Content-Disposition" => "attachment;filename=file.md"]
 ]);
 $result = $flysystem->write('file.md', 'contents', [
     "visibility" => "private"

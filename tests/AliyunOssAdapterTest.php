@@ -23,13 +23,13 @@ class AliyunOssAdapterTest extends TestCase
         /**
          * @var $client OssClient
          */
-        $client = \Mockery::mock(OssClient::class, [$accessId,$accessKey,$endpoint])
+        $client = \Mockery::mock(OssClient::class, [$accessId, $accessKey, $endpoint])
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
         $adapter = new AliyunOssAdapter($client, $bucket);
 
         return [
-            [$adapter,$client]
+            [$adapter, $client]
         ];
     }
 
@@ -42,16 +42,15 @@ class AliyunOssAdapterTest extends TestCase
     public function testWrite($adapter, $client)
     {
         $client->shouldReceive("putObject")
-            ->andReturn(["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "7","Content-Type" => "application/octet-stream"]])
+            ->andReturn(["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT", "Content-Length" => "7", "Content-Type" => "application/octet-stream"]])
             ->once();
 
         $result = $adapter->write("foo/bar.md", "content", new Config());
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 7,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("putObject")
@@ -71,10 +70,10 @@ class AliyunOssAdapterTest extends TestCase
     public function testWriteStream($adapter, $client)
     {
         $client->shouldReceive("uploadStream")
-            ->andReturn(["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]])
+            ->andReturn(["info" => ["upload_content_length" => 7.0], "oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT", "Content-Type" => "application/octet-stream"]])
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -82,16 +81,15 @@ class AliyunOssAdapterTest extends TestCase
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 7,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("uploadStream")
             ->andThrow(new OssException("error"))
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -107,16 +105,15 @@ class AliyunOssAdapterTest extends TestCase
     public function testUpdate($adapter, $client)
     {
         $client->shouldReceive("putObject")
-            ->andReturn(["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Length" => "6","Content-Type" => "application/octet-stream"]])
+            ->andReturn(["oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT", "Content-Length" => "6", "Content-Type" => "application/octet-stream"]])
             ->once();
 
         $result = $adapter->update("foo/bar.md", "update", new Config());
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 6,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("putObject")
@@ -136,10 +133,10 @@ class AliyunOssAdapterTest extends TestCase
     public function testUpdateStream($adapter, $client)
     {
         $client->shouldReceive("uploadStream")
-            ->andReturn(["info" => ["upload_content_length" => 7.0],"oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT","Content-Type" => "application/octet-stream"]])
+            ->andReturn(["info" => ["upload_content_length" => 7.0], "oss-requestheaders" => ["Date" => "Thu, 10 Jun 2021 02:42:20 GMT", "Content-Type" => "application/octet-stream"]])
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->updateStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -147,16 +144,15 @@ class AliyunOssAdapterTest extends TestCase
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
-            "timestamp" => 1623292940,
             "size" => 7,
-            "mimetype" => "application/octet-stream",
+            "mimetype" => "text/markdown",
         ], $result);
 
         $client->shouldReceive("uploadStream")
             ->andThrow(new OssException("error"))
             ->once();
 
-        $fp = fopen('php://temp', 'w+');
+        $fp = fopen("php://temp", "w+");
         fwrite($fp, "content");
         $result = $adapter->writeStream("foo/bar.md", $fp, new Config());
         fclose($fp);
@@ -238,62 +234,6 @@ class AliyunOssAdapterTest extends TestCase
      * @param AliyunOssAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testDeleteDir($adapter, $client)
-    {
-        $listObjects = \Mockery::mock("stdClass")->allows([
-            "getObjectList" => [new ObjectInfo(
-                "foo/bar.md",
-                "Thu, 10 Jun 2021 02:42:20 GMT",
-                "9A0364B9E99BB480DD25E1F0284C8555",
-                "application/octet-stream",
-                7,
-                "standard"
-            ),new ObjectInfo(
-                "foo/baz.md",
-                "Thu, 10 Jun 2021 02:42:20 GMT",
-                "9A0364B9E99BB480DD25E1F0284C8555",
-                "application/octet-stream",
-                7,
-                "standard"
-            )],
-            "getPrefixList" => [],
-            "getNextMarker" => ""
-        ]);
-        $client->allows([
-            "listObjects" => $listObjects,
-            "deleteObjects" => null
-        ]);
-
-
-        $result = $adapter->deleteDir("foo/");
-        $this->assertTrue($result);
-    }
-
-    /**
-     * @dataProvider aliyunProvider
-     *
-     * @param AliyunOssAdapter $adapter
-     * @param OssClient|MockInterface $client
-     */
-    public function testCreateDir($adapter, $client)
-    {
-        $client->allows([
-            "createObjectDir" => null
-        ]);
-
-        $result = $adapter->createDir("baz/", new Config());
-        $this->assertSame([
-            "type" => "dir",
-            "path" => "baz/"
-        ], $result);
-    }
-
-    /**
-     * @dataProvider aliyunProvider
-     *
-     * @param AliyunOssAdapter $adapter
-     * @param OssClient|MockInterface $client
-     */
     public function testSetVisibility($adapter, $client)
     {
         $client->shouldReceive("putObjectAcl")
@@ -361,49 +301,7 @@ class AliyunOssAdapterTest extends TestCase
 
         $result = $adapter->readStream("foo/bar.md");
 
-        $this->assertTrue(is_resource($result['stream']));
-    }
-
-    /**
-     * @dataProvider aliyunProvider
-     *
-     * @param AliyunOssAdapter $adapter
-     * @param OssClient|MockInterface $client
-     */
-    public function testListContents($adapter, $client)
-    {
-        $listObjects = \Mockery::mock("stdClass")->allows([
-            "getObjectList" => [new ObjectInfo(
-                "foo/bar.md",
-                "Thu, 10 Jun 2021 02:42:20 GMT",
-                "9A0364B9E99BB480DD25E1F0284C8555",
-                "application/octet-stream",
-                7,
-                "standard"
-            )],
-            "getPrefixList" => [new PrefixInfo("foo/baz/")],
-            "getNextMarker" => ""
-        ]);
-        $client->allows([
-            "listObjects" => $listObjects
-        ]);
-        $file = ["timestamp" => strtotime("Thu, 10 Jun 2021 02:42:20 GMT")];
-
-        $result = $adapter->listContents("foo/");
-        $this->assertSame([
-            [
-                "type" => "file",
-                "path" => "foo/bar.md",
-                "size" => 7,
-                "timestamp" => $file["timestamp"]
-            ],
-            [
-                "type" => "dir",
-                "path" => "foo/baz/",
-                "size" => 0,
-                "timestamp" => 0
-            ]
-        ], $result);
+        $this->assertTrue(is_resource($result["stream"]));
     }
 
     /**
@@ -415,15 +313,15 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetMetadata($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7,"filetime" => 1623292940,"content_type" => "application/octet-stream"]]);
+            ->andReturn(["content-length" => 7, "last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT", "content-type" => "application/octet-stream"]);
 
         $result = $adapter->getMetadata("foo/bar.md");
         $this->assertSame([
             "type" => "file",
             "path" => "foo/bar.md",
             "size" => 7,
-            "timestamp" => 1623292940,
-            "mimetype" => "application/octet-stream"
+            "mimetype" => "application/octet-stream",
+            "timestamp" => 1646815258
         ], $result);
     }
 
@@ -436,7 +334,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetSize($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
+            ->andReturn(["content-length" => 7, "last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT", "content-type" => "application/octet-stream"]);
 
         $result = $adapter->getSize("foo/bar.md");
         $this->assertSame([
@@ -453,7 +351,7 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetMimetype($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7.0,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
+            ->andReturn(["content-length" => 7, "last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT", "content-type" => "application/octet-stream"]);
 
         $result = $adapter->getMimetype("foo/bar.md");
         $this->assertSame([
@@ -470,11 +368,11 @@ class AliyunOssAdapterTest extends TestCase
     public function testGetTimestamp($adapter, $client)
     {
         $client->shouldReceive("getObjectMeta")
-            ->andReturn(["info" => ["download_content_length" => 7.0,"filetime" => 1623292940,"content_type" => "application/octet-stream","url" => "http://my-storage.oss-cn-shanghai.aliyuncs.com/foo/bar.md"]]);
+            ->andReturn(["content-length" => 7, "last-modified" => "Wed, 09 Mar 2022 08:40:58 GMT", "content-type" => "application/octet-stream"]);
 
         $result = $adapter->getTimestamp("foo/bar.md");
         $this->assertSame([
-            "timestamp" => 1623292940,
+            "timestamp" => 1646815258,
         ], $result);
     }
 
@@ -543,11 +441,11 @@ class AliyunOssAdapterTest extends TestCase
      */
     public function testGetException($adapter, $client)
     {
-        $errorException = new OssException('error');
+        $errorException = new OssException("error");
         $client->shouldReceive("getObject")
             ->andThrow($errorException);
 
-        $result = $adapter->read('none.md');
+        $result = $adapter->read("none.md");
         $exception = $adapter->getException();
 
         $this->assertFalse($result);

@@ -22,7 +22,6 @@
     },
     "require-dev": {
         "mockery/mockery": "~0.9.11",
-        "friendsofphp/php-cs-fixer": "~2.2.20",
         "phpunit/phpunit": "^4.8"
     },
     "autoload": {
@@ -36,15 +35,9 @@
         }
     },
     "scripts": {
-        "phpstan": "vendor/bin/phpstan analyse",
-        "check-style": "vendor/bin/php-cs-fixer fix --using-cache=no --diff --config=.php_cs --dry-run --ansi",
-        "fix-style": "vendor/bin/php-cs-fixer fix --using-cache=no --config=.php_cs --ansi",
         "test": "vendor/bin/phpunit --colors=always --testdox"
     },
     "scripts-descriptions": {
-        "phpstan": "Run static analysis",
-        "check-style": "Run style checks (only dry run - no fixing!).",
-        "fix-style": "Run style checks and fix violations.",
         "test": "Run all tests."
     }
 }
