@@ -12,8 +12,6 @@ use OSS\OssClient;
 
 class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, AliyunOssAdapterInterface, AliyunOssFactoryInterface
 {
-    const OSS_REQUEST_HEADERS = "oss-requestheaders";
-
     /**
      * @var OssClient
      */
