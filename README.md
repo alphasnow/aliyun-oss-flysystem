@@ -2,18 +2,18 @@
 
 💾 Flysystem Adapter for [Aliyun Object Storage Service](https://www.alibabacloud.com/help/en/object-storage-service).
 
-[![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
-[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Total Downloads](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/downloads)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
+[![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
+[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
 
 ## Compatibility
 
-| **php**  | **flysystem**  |  **aliyun-oss-flysystem** | **document**
+| **php**  | **flysystem**  |  **aliyun-oss-flysystem** | **readme**
 |---|---|---|---|
-|>=5.5.9,\<7.0| ~1.0.0  | ^0.3  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/0.x/README.md) |
-|>=7.0| ^1.0 | ^1.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/1.x/README.md) |
-|>=8.0| ^3.0 | ^3.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/master/README.md)
+|\>=8.0| ^3.0 | ^3.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/master/README.md)
+|\>=7.0| ^1.0 | ^1.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/1.x/README.md) |
+|\>=5.5.9,\<7.0| ~1.0.0  | ^0.3  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/0.x/README.md) |
 
 ## Installation
 
