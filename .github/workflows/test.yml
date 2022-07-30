@@ -13,7 +13,7 @@ jobs:
             matrix:
                 operating-system: [ 'ubuntu-latest']
                 php-versions: [ '7.0', '7.1']
-                dependency-version: [prefer-lowest, prefer-stable]
+                dependency-version: [prefer-stable]
 
         name: P${{ matrix.php-versions }} - ${{ matrix.dependency-version }} - ${{ matrix.operating-system }}
 
