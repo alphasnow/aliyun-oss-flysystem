@@ -16,10 +16,10 @@ class AliyunOssPluginTest extends TestCase
 {
     public function aliyunProvider()
     {
-        $accessId = getenv("ALIYUN_OSS_ACCESS_ID");
-        $accessKey = getenv("ALIYUN_OSS_ACCESS_KEY");
-        $bucket = getenv("ALIYUN_OSS_BUCKET");
-        $endpoint = getenv("ALIYUN_OSS_ENDPOINT");
+        $accessId = "access_id";
+        $accessKey = "access_key";
+        $bucket = "bucket";
+        $endpoint = "endpoint.com";
 
         /**
          * @var $client OssClient

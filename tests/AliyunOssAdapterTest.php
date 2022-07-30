@@ -15,10 +15,10 @@ class AliyunOssAdapterTest extends TestCase
 {
     public function aliyunProvider()
     {
-        $accessId = getenv("ALIYUN_OSS_ACCESS_ID");
-        $accessKey = getenv("ALIYUN_OSS_ACCESS_KEY");
-        $bucket = getenv("ALIYUN_OSS_BUCKET");
-        $endpoint = getenv("ALIYUN_OSS_ENDPOINT");
+        $accessId = "access_id";
+        $accessKey = "access_key";
+        $bucket = "bucket";
+        $endpoint = "endpoint.com";
 
         /**
          * @var $client OssClient
@@ -519,7 +519,7 @@ class AliyunOssAdapterTest extends TestCase
     {
         $bucket = $adapter->getBucket();
 
-        $this->assertSame(getenv("ALIYUN_OSS_BUCKET"), $bucket);
+        $this->assertSame("bucket", $bucket);
     }
 
     /**
