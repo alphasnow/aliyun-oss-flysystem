@@ -558,10 +558,10 @@ class AliyunOssAdapterTest extends TestCase
 
     public function testCreate()
     {
-        $accessId = getenv("ALIYUN_OSS_ACCESS_ID");
-        $accessKey = getenv("ALIYUN_OSS_ACCESS_KEY");
-        $bucket = getenv("ALIYUN_OSS_BUCKET");
-        $endpoint = getenv("ALIYUN_OSS_ENDPOINT");
+        $accessId = "access_id";
+        $accessKey = "access_key";
+        $bucket = "bucket";
+        $endpoint = "endpoint.com";
 
         $adapter = AliyunOssAdapter::create($accessId, $accessKey, $bucket, $endpoint);
         $this->assertInstanceOf(AliyunOssAdapter::class, $adapter);
