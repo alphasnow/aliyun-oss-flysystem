@@ -5,14 +5,14 @@
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Total Downloads](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/downloads)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
-[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
+[![Test](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/Test/badge.svg?branch=1.x)](https://github.com/alphasnow/aliyun-oss-flysystem/actions?query=branch:1.x)
 
 ## Compatibility
 
 | **php**  | **flysystem**  |  **aliyun-oss-flysystem** |
 |---|---|---|
-|\>=5.5.9,\<7.0| ~1.0.0  | ^0.3  |
 |\>=7.0| ^1.0 | ^1.0  |
+|\>=5.5.9,\<7.0| ~1.0.0  | ^0.3  |
 
 ## Installation
 
