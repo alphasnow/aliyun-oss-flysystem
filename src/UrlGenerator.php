@@ -7,7 +7,7 @@ class UrlGenerator
     /**
      * @var array
      */
-    protected array $config = [
+    protected $config = [
         "bucket" => null,
         "endpoint" => null,
         "internal" => null,

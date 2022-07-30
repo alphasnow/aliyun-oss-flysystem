@@ -7,7 +7,7 @@ use League\Flysystem\DirectoryAttributes;
 use League\Flysystem\FileAttributes;
 use League\Flysystem\FilesystemAdapter;
 use League\Flysystem\PathPrefixer;
-use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToCheckFileExistence;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteDirectory;
@@ -24,37 +24,37 @@ class AliyunAdapter implements FilesystemAdapter
     /**
      * @var OssClient
      */
-    protected OssClient $client;
+    protected $client;
 
     /**
      * @var string
      */
-    protected string $bucket;
+    protected $bucket;
 
     /**
      * @var OssOptions
      */
-    protected OssOptions $options;
+    protected $options;
 
     /**
      * @var PathPrefixer
      */
-    protected PathPrefixer $prefixer;
+    protected $prefixer;
 
     /**
      * @var VisibilityConverter
      */
-    protected VisibilityConverter $visibility;
+    protected $visibility;
 
     /**
      * @var UrlGenerator
      */
-    protected UrlGenerator $urlGenerator;
+    protected $urlGenerator;
 
     /**
      * @var array
      */
-    protected array $config;
+    protected $config;
 
     /**
      * @param OssClient $client
@@ -85,7 +85,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToCheckExistence::forLocation($path, $exception);
+            throw UnableToCheckFileExistence::forLocation($path, $exception);
         }
     }
 
@@ -97,7 +97,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToCheckExistence::forLocation($path, $exception);
+            throw UnableToCheckFileExistence::forLocation($path, $exception);
         }
     }
 

@@ -6,7 +6,7 @@ use AlphaSnow\Flysystem\Aliyun\AliyunException;
 use AlphaSnow\Flysystem\Aliyun\OssOptions;
 use AlphaSnow\Flysystem\Aliyun\UrlGenerator;
 use League\Flysystem\PathPrefixer;
-use League\Flysystem\UnableToCheckExistence;
+use League\Flysystem\UnableToCheckFileExistence;
 use League\Flysystem\UnableToCopyFile;
 use League\Flysystem\UnableToCreateDirectory;
 use League\Flysystem\UnableToDeleteFile;
@@ -62,7 +62,7 @@ class AliyunAdapterTest extends TestCase
      */
     public function testFileExists($adapter, $client)
     {
-        $this->expectException(UnableToCheckExistence::class);
+        $this->expectException(UnableToCheckFileExistence::class);
         $client->shouldReceive("doesObjectExist")
             ->andThrow(new OssException("error"))
             ->once();
@@ -77,7 +77,7 @@ class AliyunAdapterTest extends TestCase
      */
     public function testDirectoryExists($adapter, $client)
     {
-        $this->expectException(UnableToCheckExistence::class);
+        $this->expectException(UnableToCheckFileExistence::class);
         $client->shouldReceive("doesObjectExist")
             ->andThrow(new OssException("error"))
             ->once();
