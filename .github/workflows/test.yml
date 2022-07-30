@@ -15,7 +15,7 @@ jobs:
                 php-versions: [ '7.0', '7.1']
                 dependency-version: [prefer-lowest, prefer-stable]
 
-        name: P${{ matrix.php-versions }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+        name: P${{ matrix.php-versions }} - ${{ matrix.dependency-version }} - ${{ matrix.operating-system }}
 
         steps:
             - name: Checkout code
