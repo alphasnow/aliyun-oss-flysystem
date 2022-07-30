@@ -5,7 +5,7 @@
 [![Latest Stable Version](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/v/stable)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![Total Downloads](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/downloads)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
 [![License](https://poser.pugx.org/alphasnow/aliyun-oss-flysystem/license)](https://packagist.org/packages/alphasnow/aliyun-oss-flysystem)
-[![Build Status](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/CI/badge.svg?branch=3.x)](https://github.com/alphasnow/aliyun-oss-flysystem/actions)
+[![Test](https://github.com/alphasnow/aliyun-oss-flysystem/workflows/Test/badge.svg?branch=3.x)](https://github.com/alphasnow/aliyun-oss-flysystem/actions?query=branch:3.x)
 
 ## Compatibility
 
