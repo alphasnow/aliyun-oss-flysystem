@@ -16,7 +16,6 @@
         }
     ],
     "require": {
-        "php": "^8.0.2",
         "league/flysystem": "^3.0",
         "aliyuncs/oss-sdk-php": "^2.5"
     },

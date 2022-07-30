@@ -9,12 +9,12 @@
 
 ## Compatibility
 
-| **php**  | **flysystem**  |  **aliyun-oss-flysystem** | **readme**
-|---|---|---|---|
-|\>=8.0| ^3.0 | ^3.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/3.x/README.md) |
-|\>=7.2| ^2.0 | ^2.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/2.x/README.md) |
-|\>=7.0| ^1.0 | ^1.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/1.x/README.md) |
-|\>=5.5.9,\<7.0| ~1.0.0  | ^0.3  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/0.x/README.md) |
+| **flysystem**  |  **aliyun-oss-flysystem** | **readme**
+|---|---|---|
+| ^3.0 | ^3.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/3.x/README.md) |
+| ^2.0 | ^2.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/2.x/README.md) |
+| ^1.0 | ^1.0  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/1.x/README.md) |
+| ~1.0.0  | ^0.3  | [readme](https://github.com/alphasnow/aliyun-oss-flysystem/blob/0.x/README.md) |
 
 ## Installation
 
