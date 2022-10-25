@@ -182,7 +182,9 @@ class AliyunAdapter implements FilesystemAdapter
                     continue;
                 }
                 $files[] = $this->prefixer->prefixPath($content->path());
-                if ($i && $i % 100 == 0) {
+
+                // A maximum of 1000 files can be deleted at a time
+                if ($i && $i % 1000 == 0) {
                     $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
                     $files = [];
                 }
@@ -267,7 +269,6 @@ class AliyunAdapter implements FilesystemAdapter
             $options = array_merge(
                 $this->options->getOptions(),
                 [
-                    'max_keys' => 100,
                     OssClient::OSS_PREFIX => $directory,
                     OssClient::OSS_CONTINUATION_TOKEN => $nextToken
                 ]
