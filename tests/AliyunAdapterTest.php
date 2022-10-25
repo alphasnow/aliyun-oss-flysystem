@@ -60,7 +60,7 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testFileExists($adapter, $client)
+    public function testFileExistsException($adapter, $client)
     {
         $this->expectException(UnableToCheckExistence::class);
         $client->shouldReceive("doesObjectExist")
@@ -75,7 +75,7 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testDirectoryExists($adapter, $client)
+    public function testDirectoryExistsException($adapter, $client)
     {
         $this->expectException(UnableToCheckExistence::class);
         $client->shouldReceive("doesObjectExist")
@@ -90,7 +90,7 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testWrite($adapter, $client)
+    public function testWriteException($adapter, $client)
     {
         $this->expectException(UnableToWriteFile::class);
         $client->shouldReceive("putObject")
@@ -105,7 +105,7 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testWriteStream($adapter, $client)
+    public function testWriteStreamException($adapter, $client)
     {
         $this->expectException(UnableToWriteFile::class);
         $client->shouldReceive("uploadStream")
@@ -142,7 +142,7 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testCopy($adapter, $client)
+    public function testCopyException($adapter, $client)
     {
         $this->expectException(UnableToCopyFile::class);
         $client->shouldReceive("copyObject")
@@ -157,7 +157,7 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testDelete($adapter, $client)
+    public function testDeleteException($adapter, $client)
     {
         $this->expectException(UnableToDeleteFile::class);
         $client->shouldReceive("deleteObject")
@@ -174,12 +174,6 @@ class AliyunAdapterTest extends TestCase
      */
     public function testDeleteDirectory($adapter, $client)
     {
-        $this->expectException(AliyunException::class);
-        $client->shouldReceive("listObjects")
-            ->andThrow(new OssException("error"))
-            ->once();
-        $adapter->deleteDirectory("bar/");
-
         $listObjects = \Mockery::mock("stdClass")->allows([
             "getObjectList" => [new ObjectInfo(
                 "foo/bar.md",
@@ -197,16 +191,31 @@ class AliyunAdapterTest extends TestCase
                 "standard"
             )],
             "getPrefixList" => [],
-            "getNextMarker" => "",
+            "getNextContinuationToken" => "",
             "getIsTruncated" => "false"
         ]);
         $client->allows([
-            "listObjects" => $listObjects,
-            "deleteObjects" => null
+            "listObjectsV2" => $listObjects,
+            "deleteObjects" => null,
+            "deleteObject"=>null
         ]);
         $adapter->deleteDirectory("foo/");
+        $this->assertTrue(true);
     }
-
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testDeleteDirectoryException($adapter, $client)
+    {
+        $this->expectException(AliyunException::class);
+        $client->shouldReceive("listObjects")
+            ->andThrow(new OssException("error"))
+            ->once();
+        $adapter->deleteDirectory("bar/");
+    }
     /**
      * @dataProvider aliyunProvider
      *
@@ -245,12 +254,6 @@ class AliyunAdapterTest extends TestCase
      */
     public function testRead($adapter, $client)
     {
-        $this->expectException(UnableToReadFile::class);
-        $client->shouldReceive("createObjectDir")
-            ->andThrow(new OssException("error"))
-            ->once();
-        $adapter->read("foo/bar.md");
-
         $client->shouldReceive("getObject")
             ->andReturn("content")
             ->once();
@@ -264,14 +267,23 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
-    public function testReadStream($adapter, $client)
+    public function testReadException($adapter, $client)
     {
         $this->expectException(UnableToReadFile::class);
-        $client->shouldReceive("getObject")
+        $client->shouldReceive("createObjectDir")
             ->andThrow(new OssException("error"))
             ->once();
         $adapter->read("foo/bar.md");
+    }
 
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testReadStream($adapter, $client)
+    {
         $client->shouldReceive("getObject")
             ->andReturn(null);
         $result = $adapter->readStream("foo/bar.md");
@@ -284,13 +296,23 @@ class AliyunAdapterTest extends TestCase
      * @param AliyunAdapter $adapter
      * @param OssClient|MockInterface $client
      */
+    public function testReadStreamException($adapter, $client)
+    {
+        $this->expectException(UnableToReadFile::class);
+        $client->shouldReceive("getObject")
+            ->andThrow(new OssException("error"))
+            ->once();
+        $adapter->readStream("foo/bar.md");
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
     public function testListContents($adapter, $client)
     {
-        $this->expectException(AliyunException::class);
-        $client->shouldReceive("listObjects")
-            ->andThrow(new OssException("error"));
-        $adapter->listContents("foo/", false);
-
         $listObjects = \Mockery::mock("stdClass")->allows([
             "getObjectList" => [new ObjectInfo(
                 "foo/bar.md",
@@ -301,11 +323,11 @@ class AliyunAdapterTest extends TestCase
                 "standard"
             )],
             "getPrefixList" => [new PrefixInfo("foo/baz/")],
-            "getNextMarker" => "",
+            "getNextContinuationToken" => "",
             "getIsTruncated" => "false"
         ]);
         $client->allows([
-            "listObjects" => $listObjects
+            "listObjectsV2" => $listObjects
         ]);
         $results = $adapter->listContents("foo/", false);
         $resultPaths = [];
@@ -313,8 +335,8 @@ class AliyunAdapterTest extends TestCase
             $resultPaths[] = $result->path();
         }
         $this->assertSame([
-            "foo/bar.md",
-            "foo/baz"
+            "foo/baz",
+            "foo/bar.md"
         ], $resultPaths);
     }
 
@@ -388,7 +410,16 @@ class AliyunAdapterTest extends TestCase
             "public",
             $result->visibility()
         );
+    }
 
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testVisibilityException($adapter, $client)
+    {
         $client->shouldReceive("getObjectAcl")
             ->andThrow(new OssException("error"))
             ->once();

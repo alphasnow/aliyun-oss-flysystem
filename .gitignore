@@ -6,5 +6,7 @@
 /phpunit.xml
 /.env
 /.php-cs-fixer.cache
-/.env
-/reports
+/html-coverage
+/.coveralls.yml
+/coverage.json
+/coverage.xml

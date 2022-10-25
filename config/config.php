@@ -17,7 +17,7 @@ return [
     "options" => [
         // \OSS\OssClient::OSS_CHECK_MD5 => false,
     ],
-    'internal' => null, // For example: oss-cn-shanghai-internal.aliyuncs.com
-    'domain' => null, // For example: oss.my-domain.com
+    "internal" => null, // For example: oss-cn-shanghai-internal.aliyuncs.com
+    "domain" => null, // For example: oss.my-domain.com
     "reverse_proxy" => false, // Nginx reverse proxy domain
 ];
