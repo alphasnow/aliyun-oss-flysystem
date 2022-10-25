@@ -262,18 +262,18 @@ class AliyunAdapter implements FilesystemAdapter
     public function listContents(string $path, bool $deep): iterable
     {
         $directory = $this->prefixer->prefixDirectoryPath($path);
-        $nextMarker = "";
+        $nextToken = "";
         while (true) {
             $options = array_merge(
                 $this->options->getOptions(),
                 [
+                    'max_keys' => 100,
                     OssClient::OSS_PREFIX => $directory,
-                    OssClient::OSS_MARKER => $nextMarker
+                    OssClient::OSS_CONTINUATION_TOKEN => $nextToken
                 ]
             );
             try {
-                $listObjectInfo = $this->client->listObjects($this->bucket, $options);
-                $nextMarker = $listObjectInfo->getNextMarker();
+                $listObjectInfo = $this->client->listObjectsV2($this->bucket, $options);
             } catch (OssException $exception) {
                 throw new AliyunException($exception->getErrorMessage(), 0, $exception);
             }
@@ -281,15 +281,12 @@ class AliyunAdapter implements FilesystemAdapter
             $prefixList = $listObjectInfo->getPrefixList();
             foreach ($prefixList as $prefixInfo) {
                 $subPath = $this->prefixer->stripDirectoryPrefix($prefixInfo->getPrefix());
-                if ($subPath == $path) {
+                if ($subPath === $path) {
                     continue;
                 }
                 yield new DirectoryAttributes($subPath);
                 if ($deep === true) {
-                    $contents = $this->listContents($subPath, $deep);
-                    foreach ($contents as $content) {
-                        yield $content;
-                    }
+                    yield from $this->listContents($subPath, $deep);
                 }
             }
 
@@ -298,16 +295,17 @@ class AliyunAdapter implements FilesystemAdapter
                 foreach ($listObject as $objectInfo) {
                     $objectPath = $this->prefixer->stripPrefix($objectInfo->getKey());
                     $objectLastModified = strtotime($objectInfo->getLastModified());
-                    if (substr($objectPath, -1, 1) == "/") {
+                    if (substr($objectPath, -1, 1) === "/") {
                         continue;
                     }
                     yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
                 }
             }
 
-            if ($listObjectInfo->getIsTruncated() !== "true") {
+            if ($listObjectInfo->getIsTruncated() === "false") {
                 break;
             }
+            $nextToken = $listObjectInfo->getNextContinuationToken();
         }
     }
 
