@@ -174,11 +174,10 @@ class AliyunAdapter implements FilesystemAdapter
     public function deleteDirectory(string $path): void
     {
         try {
-            $contents = $this->listContents($path, false);
+            $contents = $this->listContents($path, true);
             $files = [];
             foreach ($contents as $i => $content) {
                 if ($content instanceof DirectoryAttributes) {
-                    $this->deleteDirectory($content->path());
                     continue;
                 }
                 $files[] = $this->prefixer->prefixPath($content->path());
@@ -190,7 +189,7 @@ class AliyunAdapter implements FilesystemAdapter
                 }
             }
             !empty($files) && $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
-            $this->client->deleteObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
+            $this->directoryExists($path) && $this->client->deleteObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
             throw UnableToDeleteDirectory::atLocation($path, $exception->getErrorCode(), $exception);
         }
@@ -202,7 +201,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function createDirectory(string $path, Config $config): void
     {
         try {
-            $this->client->createObjectDir($this->bucket, $this->prefixer->prefixPath($path), $this->options->mergeConfig($config, $this->visibility));
+            $this->client->putObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), "", $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
             throw UnableToCreateDirectory::dueToFailure($path, $exception);
         }
@@ -263,50 +262,51 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function listContents(string $path, bool $deep): iterable
     {
-        $directory = $this->prefixer->prefixDirectoryPath($path);
+        $prefix = $this->prefixer->prefixDirectoryPath($path);
+        $delimiter = $deep ? "" : "/";
         $nextToken = "";
         while (true) {
             $options = array_merge(
                 $this->options->getOptions(),
                 [
-                    OssClient::OSS_PREFIX => $directory,
+                    OssClient::OSS_PREFIX => $prefix,
+                    OssClient::OSS_DELIMITER => $delimiter,
                     OssClient::OSS_CONTINUATION_TOKEN => $nextToken
                 ]
             );
             try {
-                $listObjectInfo = $this->client->listObjectsV2($this->bucket, $options);
+                $listObjects = $this->client->listObjectsV2($this->bucket, $options);
             } catch (OssException $exception) {
                 throw new AliyunException($exception->getErrorMessage(), 0, $exception);
             }
 
-            $prefixList = $listObjectInfo->getPrefixList();
+            $prefixList = $listObjects->getPrefixList();
             foreach ($prefixList as $prefixInfo) {
-                $subPath = $this->prefixer->stripDirectoryPrefix($prefixInfo->getPrefix());
-                if ($subPath === $path) {
-                    continue;
-                }
-                yield new DirectoryAttributes($subPath);
-                if ($deep === true) {
-                    yield from $this->listContents($subPath, $deep);
-                }
+                $prefixPath = $this->prefixer->stripDirectoryPrefix($prefixInfo->getPrefix());
+                yield new DirectoryAttributes($prefixPath);
             }
 
-            $listObject = $listObjectInfo->getObjectList();
-            if (!empty($listObject)) {
-                foreach ($listObject as $objectInfo) {
+            $objectList = $listObjects->getObjectList();
+            if (!empty($objectList)) {
+                foreach ($objectList as $objectInfo) {
+                    // Exclude the root folder
+                    if ($objectInfo->getKey() == $prefix) {
+                        continue;
+                    }
                     $objectPath = $this->prefixer->stripPrefix($objectInfo->getKey());
                     $objectLastModified = strtotime($objectInfo->getLastModified());
                     if (substr($objectPath, -1, 1) === "/") {
-                        continue;
+                        yield new DirectoryAttributes($objectPath, null, $objectLastModified);
+                    } else {
+                        yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
                     }
-                    yield new FileAttributes($objectPath, $objectInfo->getSize(), null, $objectLastModified);
                 }
             }
 
-            if ($listObjectInfo->getIsTruncated() === "false") {
+            if ($listObjects->getIsTruncated() === "false") {
                 break;
             }
-            $nextToken = $listObjectInfo->getNextContinuationToken();
+            $nextToken = $listObjects->getNextContinuationToken();
         }
     }
 

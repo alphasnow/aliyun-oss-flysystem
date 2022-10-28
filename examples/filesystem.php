@@ -22,16 +22,6 @@ $has = $flysystem->has("bar.md");
 $read = $flysystem->read("file.md");
 $readStream = $flysystem->readStream("file.md");
 
-$flysystem->createDirectory("foo/");
-$directoryExists = $flysystem->directoryExists("foo/");
-$flysystem->deleteDirectory("foo/");
-
-$listContents = $flysystem->listContents("/");
-$listPaths = [];
-foreach ($listContents as $listContent) {
-    $listPaths[] = $listContent->path();
-}
-
 $lastModified = $flysystem->lastModified("file.md");
 $fileSize = $flysystem->fileSize("file.md");
 $mimeType = $flysystem->mimeType("file.md");
@@ -43,7 +33,7 @@ $flysystem->write("file.md", "contents", [
     "options" => [OssClient::OSS_CHECK_MD5 => false]
 ]);
 $flysystem->write("bar.md", "contents", [
-    "headers" => ["Content-Disposition" => "attachment; filename=file.md"]
+    "headers" => ["Content-Disposition" => "attachment; filename=bar.md"]
 ]);
 $flysystem->write("baz.md", "contents", [
     "visibility" => "private"

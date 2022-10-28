@@ -197,7 +197,8 @@ class AliyunAdapterTest extends TestCase
         $client->allows([
             "listObjectsV2" => $listObjects,
             "deleteObjects" => null,
-            "deleteObject"=>null
+            "deleteObject" => null,
+            "doesObjectExist" => true,
         ]);
         $adapter->deleteDirectory("foo/");
         $this->assertTrue(true);
