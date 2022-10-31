@@ -9,3 +9,7 @@
 /.php-cs-fixer.cache
 /examples/config.php
 /reports
+/html-coverage/
+/.coveralls.yml
+/coverage.xml
+/coverage.json

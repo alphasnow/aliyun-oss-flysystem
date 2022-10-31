@@ -257,7 +257,7 @@ class AliyunOssAdapterTest extends TestCase
             "getIsTruncated" => "false"
         ]);
         $client->allows([
-            "listObjects" => $listObjects,
+            "listObjectsV2" => $listObjects,
             "deleteObjects" => null,
             "deleteObject" => null
         ]);
@@ -383,7 +383,7 @@ class AliyunOssAdapterTest extends TestCase
             "getIsTruncated" => "false"
         ]);
         $client->allows([
-            "listObjects" => $listObjects
+            "listObjectsV2" => $listObjects
         ]);
         $file = ["timestamp" => strtotime("Thu, 10 Jun 2021 02:42:20 GMT")];
 
@@ -395,7 +395,7 @@ class AliyunOssAdapterTest extends TestCase
                 "size" => 0,
                 "mimetype" => "",
                 "timestamp" => 0,
-                "dirname" => "foo/baz/"
+                "dirname" => "foo"
             ],
             [
                 "type" => "file",
@@ -403,7 +403,7 @@ class AliyunOssAdapterTest extends TestCase
                 "size" => 7,
                 "mimetype" => "",
                 "timestamp" => $file["timestamp"],
-                "dirname" => "foo/"
+                "dirname" => "foo"
             ]
         ], $result);
     }

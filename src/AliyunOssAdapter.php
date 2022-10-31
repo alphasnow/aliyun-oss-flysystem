@@ -175,22 +175,22 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
             $files = [];
             foreach ($contents as $i => $content) {
                 if ($content["type"] === "dir") {
-                    $this->deleteDir($content["path"]);
                     continue;
                 }
                 $files[] = $this->applyPathPrefix($content["path"]);
+
+                // A maximum of 1000 files can be deleted at a time
                 if ($i && $i % 1000 == 0) {
                     $this->client->deleteObjects($this->bucket, $files, $this->options);
                     $files = [];
                 }
             }
             !empty($files) && $this->client->deleteObjects($this->bucket, $files, $this->options);
-            $this->client->deleteObject($this->bucket, $this->applyPathPrefix(rtrim($dirname, "/") . "/"), $this->options);
+            $this->client->deleteObject($this->bucket, $this->applyPathPrefix(rtrim($dirname, "/")."/"), $this->options);
         } catch (OssException $exception) {
             $this->exception = $exception;
             return false;
         }
-
         return true;
     }
 
@@ -295,65 +295,73 @@ class AliyunOssAdapter extends AbstractAdapter implements CanOverwriteFiles, Ali
      */
     public function listContents($directory = "", $recursive = false)
     {
-        $directory = $this->applyPathPrefix(rtrim($directory, "/")."/");
-        $nextMarker = "";
+        $prefix = $this->applyPathPrefix(rtrim($directory, "/")."/");
+        $delimiter = $recursive ? "" : "/";
+        $nextToken = "";
 
         $result = [];
         while (true) {
             $options = array_merge(
                 $this->options,
                 [
-                   OssClient::OSS_PREFIX => $directory,
-                   OssClient::OSS_MARKER => $nextMarker
+                    OssClient::OSS_PREFIX => $prefix,
+                    OssClient::OSS_DELIMITER => $delimiter,
+                    OssClient::OSS_CONTINUATION_TOKEN => $nextToken
                 ]
             );
-            $listObjectInfo = $this->client->listObjects($this->bucket, $options);
-            $nextMarker = $listObjectInfo->getNextMarker();
 
-            $prefixList = $listObjectInfo->getPrefixList();
+            $listObjects = $this->client->listObjectsV2($this->bucket, $options);
+
+            $prefixList = $listObjects->getPrefixList();
             foreach ($prefixList as $prefixInfo) {
-                $nextDirectory = rtrim($prefixInfo->getPrefix(), "/")."/";
-                if ($nextDirectory == $directory) {
-                    continue;
-                }
-
-                $nextPath = $this->removePathPrefix($nextDirectory);
+                $prefixPath = $this->removePathPrefix($prefixInfo->getPrefix());
+                $dirname = dirname($prefixPath) == "." ? "" : dirname($prefixPath);
                 $result[] = [
                     "type" => "dir",
-                    "path" => $nextPath,
+                    "path" => $prefixPath,
                     "size" => 0,
                     "mimetype" => "",
                     "timestamp" => 0,
-                    "dirname" => dirname($nextPath) == "." ? "" : $nextPath
+                    "dirname" => $dirname
                 ];
-
-                if ($recursive) {
-                    $nextResult = $this->listContents($nextPath, $recursive);
-                    $result = array_merge($result, $nextResult);
-                }
             }
 
-            $objectList = $listObjectInfo->getObjectList();
+            $objectList = $listObjects->getObjectList();
             if (!empty($objectList)) {
                 foreach ($objectList as $objectInfo) {
-                    if (substr($objectInfo->getKey(), -1, 1) == "/") {
+                    // Exclude the root folder
+                    if ($objectInfo->getKey() == $prefix) {
                         continue;
                     }
-
+                    $objectPath = $this->removePathPrefix($objectInfo->getKey());
+                    $objectLastModified = strtotime($objectInfo->getLastModified());
+                    $dirname = dirname($objectPath) == "." ? "" : dirname($objectPath);
+                    if (substr($objectPath, -1, 1) === "/") {
+                        $result[] = [
+                            "type" => "dir",
+                            "path" => $objectPath,
+                            "size" => 0,
+                            "mimetype" => "",
+                            "timestamp" => $objectLastModified,
+                            "dirname" => $dirname
+                        ];
+                        continue;
+                    }
                     $result[] = [
                         "type" => "file",
-                        "path" => $this->removePathPrefix($objectInfo->getKey()),
+                        "path" => $objectPath,
                         "size" => $objectInfo->getSize(),
                         "mimetype" => "",
-                        "timestamp" => strtotime($objectInfo->getLastModified()),
-                        "dirname" => $this->removePathPrefix($directory)
+                        "timestamp" => $objectLastModified,
+                        "dirname" => $dirname
                     ];
                 }
             }
 
-            if ($listObjectInfo->getIsTruncated() === "false") {
+            if ($listObjects->getIsTruncated() === "false") {
                 break;
             }
+            $nextToken = $listObjects->getNextContinuationToken();
         }
 
         return $result;
