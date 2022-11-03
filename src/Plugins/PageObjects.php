@@ -24,6 +24,7 @@ class PageObjects extends AliyunOssAbstractPlugin
      * @param string $rootPath
      * @param string $pageSize
      * @param string $startPath The path of the last data in the previous page
+     * @param array $config
      * @return array
      * @throws \OSS\Core\OssException
      */
