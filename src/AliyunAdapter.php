@@ -387,8 +387,8 @@ class AliyunAdapter implements FilesystemAdapter
      */
     public function getUrl(string $path): string
     {
-        $object = $this->prefixer->prefixPath($path);
-        return $this->urlGenerator->fullUrl($object);
+        // After Laravel v9.33.0 (#44330), path are prefixed
+        return $this->urlGenerator->fullUrl($path);
     }
 
     /**
