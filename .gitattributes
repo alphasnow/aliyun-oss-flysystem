@@ -18,3 +18,4 @@ _config.yml export-ignore
 CHANGELOG.md export-ignore
 .php-cs-fixer.php export-ignore
 .env.example export-ignore
+/build export-ignore
