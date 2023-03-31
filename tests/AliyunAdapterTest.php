@@ -271,10 +271,32 @@ class AliyunAdapterTest extends TestCase
     public function testReadException($adapter, $client)
     {
         $this->expectException(UnableToReadFile::class);
-        $client->shouldReceive("createObjectDir")
+        $client->shouldReceive("getObject")
             ->andThrow(new OssException("error"))
             ->once();
         $adapter->read("foo/bar.md");
+    }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testReadBlockedException($adapter, $client)
+    {
+        $client->shouldReceive("getObject")
+            ->andThrow(new OssException(["status" => "403","request-id" => "100000000000000000000000","code" => "","message" => "","body" => ""]))
+            ->once();
+        try {
+            $adapter->read("foo/bar.md");
+        } catch (UnableToReadFile $exception) {
+            /**
+             * @var OssException $ossException
+             */
+            $ossException = $exception->getPrevious();
+            $this->assertSame($ossException->getHTTPStatus(), "403");
+        }
     }
 
     /**
