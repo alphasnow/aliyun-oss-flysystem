@@ -97,7 +97,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToCheckExistence::forLocation($path, $exception);
+            throw UnableToCheckExistence::forLocation("{$path}. {$exception->getMessage()}", $exception);
         }
     }
 
@@ -109,7 +109,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $this->client->putObject($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
-            throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToWriteFile::atLocation($path, $exception->getMessage(), $exception);
         }
     }
 
@@ -121,7 +121,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $this->client->uploadStream($this->bucket, $this->prefixer->prefixPath($path), $contents, $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
-            throw UnableToWriteFile::atLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToWriteFile::atLocation($path, $exception->getMessage(), $exception);
         }
     }
 
@@ -133,7 +133,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             return $this->client->getObject($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToReadFile::fromLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToReadFile::fromLocation($path, $exception->getMessage(), $exception);
         }
     }
 
@@ -149,7 +149,7 @@ class AliyunAdapter implements FilesystemAdapter
             $this->client->getObject($this->bucket, $this->prefixer->prefixPath($path), $options);
         } catch (OssException $exception) {
             fclose($stream);
-            throw UnableToReadFile::fromLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToReadFile::fromLocation($path, $exception->getMessage(), $exception);
         }
 
         rewind($stream);
@@ -164,7 +164,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $this->client->deleteObject($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToDeleteFile::atLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToDeleteFile::atLocation($path, $exception->getMessage(), $exception);
         }
     }
 
@@ -191,7 +191,7 @@ class AliyunAdapter implements FilesystemAdapter
             !empty($files) && $this->client->deleteObjects($this->bucket, $files, $this->options->getOptions());
             $this->directoryExists($path) && $this->client->deleteObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToDeleteDirectory::atLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToDeleteDirectory::atLocation($path, $exception->getMessage(), $exception);
         }
     }
 
@@ -203,7 +203,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $this->client->putObject($this->bucket, $this->prefixer->prefixDirectoryPath($path), "", $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
-            throw UnableToCreateDirectory::dueToFailure($path, $exception);
+            throw UnableToCreateDirectory::dueToFailure("{$path}. {$exception->getMessage()}", $exception);
         }
     }
 
@@ -215,7 +215,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $this->client->putObjectAcl($this->bucket, $this->prefixer->prefixPath($path), $this->visibility->visibilityToAcl($visibility), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToSetVisibility::atLocation($path, $exception->getErrorCode(), $exception);
+            throw UnableToSetVisibility::atLocation($path, $exception->getMessage(), $exception);
         }
     }
 
@@ -227,7 +227,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $acl = $this->client->getObjectAcl($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToRetrieveMetadata::visibility($path, $exception->getErrorCode(), $exception);
+            throw UnableToRetrieveMetadata::visibility($path, $exception->getMessage(), $exception);
         }
 
         return new FileAttributes($path, null, $this->visibility->aclToVisibility($acl));
@@ -277,7 +277,7 @@ class AliyunAdapter implements FilesystemAdapter
             try {
                 $listObjects = $this->client->listObjectsV2($this->bucket, $options);
             } catch (OssException $exception) {
-                throw new AliyunException($exception->getErrorMessage(), 0, $exception);
+                throw new AliyunException($exception->getMessage(), 0, $exception);
             }
 
             $prefixList = $listObjects->getPrefixList();
@@ -340,7 +340,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             $result = $this->client->getObjectMeta($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToRetrieveMetadata::create($path, "metadata", $exception->getErrorCode(), $exception);
+            throw UnableToRetrieveMetadata::create($path, "metadata", $exception->getMessage(), $exception);
         }
 
         $size = isset($result["content-length"]) ? intval($result["content-length"]) : 0;
