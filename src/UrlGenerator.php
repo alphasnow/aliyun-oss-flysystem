@@ -12,6 +12,7 @@ class UrlGenerator
         "endpoint" => null,
         "internal" => null,
         "domain" => null,
+        "cdn" => null,
         "use_ssl" => false,
         "reverse_proxy" => false,
     ];
@@ -63,6 +64,14 @@ class UrlGenerator
     /**
      * @return string
      */
+    protected function getCdnDomain(): string
+    {
+        return $this->getProtocol() . "://" . $this->config["cdn"];
+    }
+
+    /**
+     * @return string
+     */
     protected function getProtocol(): string
     {
         return $this->config["use_ssl"] ? "https" : "http";
@@ -88,6 +97,10 @@ class UrlGenerator
      */
     public function correctDomain(string $url): string
     {
+        if ($this->config["cdn"]) {
+            return str_replace($this->getDomain(), $this->getCdnDomain(), $url);
+        }
+        
         if ($this->config["internal"]) {
             return str_replace($this->getInternalDomain(), $this->getDomain(), $url);
         }
