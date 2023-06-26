@@ -85,7 +85,7 @@ class AliyunAdapter implements FilesystemAdapter
         try {
             return $this->client->doesObjectExist($this->bucket, $this->prefixer->prefixPath($path), $this->options->getOptions());
         } catch (OssException $exception) {
-            throw UnableToCheckExistence::forLocation($path, $exception);
+            throw UnableToCheckExistence::forLocation("{$path}. {$exception->getMessage()}", $exception);
         }
     }
 
