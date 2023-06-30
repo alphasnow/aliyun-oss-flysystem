@@ -25,8 +25,8 @@ jobs:
         run: composer install --prefer-dist --no-interaction
       - name: Run PHPUnit tests
         run: ./vendor/bin/phpunit --coverage-clover coverage.xml
-      - name: Submit coverage report to Coveralls
-        if: ${{ matrix.php_version == 8.0 }}
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-        run: ./vendor/bin/php-coveralls --coverage_clover=coverage.xml
+#      - name: Submit coverage report to Coveralls
+#        if: ${{ matrix.php_version == 8.0 }}
+#        env:
+#          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+#        run: ./vendor/bin/php-coveralls --coverage_clover=coverage.xml
