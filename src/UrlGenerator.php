@@ -13,7 +13,7 @@ class UrlGenerator
         "internal" => null,
         "domain" => null,
         "use_ssl" => false,
-        "reverse_proxy" => false,
+        "is_cname" => false,
     ];
 
     /**
@@ -76,7 +76,7 @@ class UrlGenerator
         if ($this->config["internal"]) {
             return $this->config["internal"] ?: "";
         }
-        if ($this->config["domain"] && $this->config["reverse_proxy"] == false) {
+        if ($this->config["domain"] && $this->config["is_cname"]) {
             return $this->config["domain"] ?: "";
         }
         return $this->config["endpoint"] ?: "";
