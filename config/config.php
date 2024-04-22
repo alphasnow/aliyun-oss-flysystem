@@ -19,4 +19,6 @@ return [
     ],
     "internal" => null, // For example: oss-cn-shanghai-internal.aliyuncs.com
     "domain" => null, // For example: oss.my-domain.com
+    "signatureVersion" => null,
+    "region" => "",
 ];

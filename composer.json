@@ -17,7 +17,7 @@
     ],
     "require": {
         "league/flysystem": "^3.0",
-        "aliyuncs/oss-sdk-php": "^2.5"
+        "aliyuncs/oss-sdk-php": "^2.7"
     },
     "require-dev": {
         "phpstan/phpstan": "^1.4",
