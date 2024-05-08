@@ -40,6 +40,7 @@ class AliyunFactory
             $config['provider'] = new StaticCredentialsProvider($config["access_key_id"], $config["access_key_secret"], $config["security_token"] ?? null);
         }
         $config['endpoint'] = (new UrlGenerator($config))->getOssEndpoint();
+        $config['cname'] = $config['is_cname'] ?? false;
         $client = new OssClient($config);
         isset($config["use_ssl"]) && !is_null($config["use_ssl"]) && $client->setUseSSL($config["use_ssl"]);
         isset($config["max_retries"]) && !is_null($config["max_retries"]) && $client->setMaxTries($config["max_retries"]);
