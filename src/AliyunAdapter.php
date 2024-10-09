@@ -325,7 +325,7 @@ class AliyunAdapter implements FilesystemAdapter
     public function copy(string $source, string $destination, Config $config): void
     {
         try {
-            $this->client->copyObject($this->bucket, $this->prefixer->prefixPath($source), $this->bucket, $this->prefixer->prefixPath($destination), $this->options->getOptions());
+            $this->client->copyObject($this->bucket, $this->prefixer->prefixPath($source), $this->bucket, $this->prefixer->prefixPath($destination), $this->options->mergeConfig($config, $this->visibility));
         } catch (OssException $exception) {
             throw UnableToCopyFile::fromLocationTo($source, $destination, $exception);
         }
