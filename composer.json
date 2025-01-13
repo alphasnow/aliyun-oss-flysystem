@@ -21,7 +21,7 @@
     },
     "require-dev": {
         "phpstan/phpstan": "^1.4",
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^11.5",
         "mockery/mockery": "^1.5",
         "friendsofphp/php-cs-fixer": "^3.6",
         "vlucas/phpdotenv": "^5.4",
