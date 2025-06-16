@@ -13,7 +13,7 @@ class AliyunFactory
      * @param OssClient|null $client
      * @return AliyunAdapter
      */
-    public function createAdapter(array $config, OssClient $client = null): AliyunAdapter
+    public function createAdapter(array $config, ?OssClient $client = null): AliyunAdapter
     {
         is_null($client) && $client = $this->createClient($config);
         return new AliyunAdapter($client, $config["bucket"], $config["prefix"] ?? "", $config);
@@ -24,7 +24,7 @@ class AliyunFactory
      * @param OssClient|null $client
      * @return Filesystem
      */
-    public function createFilesystem(array $config, OssClient $client = null): Filesystem
+    public function createFilesystem(array $config, ?OssClient $client = null): Filesystem
     {
         return new Filesystem($this->createAdapter($config, $client));
     }

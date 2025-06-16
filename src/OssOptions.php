@@ -40,9 +40,10 @@ class OssOptions
 
     /**
      * @param Config $config
+     * @param VisibilityConverter|null $visibilityConverter
      * @return array
      */
-    public function mergeConfig(Config $config, VisibilityConverter $visibilityConverter = null): array
+    public function mergeConfig(Config $config, ?VisibilityConverter $visibilityConverter = null): array
     {
         $options = $config->get("options", []);
 
