@@ -410,4 +410,20 @@ class AliyunAdapter implements FilesystemAdapter
         $url = $this->client->signUrl($this->bucket, $object, $timeout, $method, $options);
         return $this->urlGenerator->correctDomain($url);
     }
+
+    /**
+     * @param  string  $path
+     * @param  \DateTimeInterface  $expiration
+     * @param  array  $options
+     * @return string
+     */
+    public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        $options = array_merge($options, [
+            'options' => [
+                OssClient::OSS_METHOD => OssClient::OSS_HTTP_PUT,
+            ],
+        ]);
+        return $this->getTemporaryUrl($path, $expiration, $options);
+    }
 }

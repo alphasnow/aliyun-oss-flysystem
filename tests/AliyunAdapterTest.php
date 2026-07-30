@@ -536,4 +536,23 @@ class AliyunAdapterTest extends TestCase
         $url = $adapter->getTemporaryUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')));
         $this->assertSame("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************", $url);
     }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testTemporaryUploadUrl($adapter, $client)
+    {
+        $client->shouldReceive("signUrl")
+            ->withArgs(function ($bucket, $object, $timeout, $method, $options) {
+                return $method === OssClient::OSS_HTTP_PUT;
+            })
+            ->andReturn("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************")
+            ->once();
+
+        $url = $adapter->temporaryUploadUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')));
+        $this->assertSame("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************", $url);
+    }
 }
