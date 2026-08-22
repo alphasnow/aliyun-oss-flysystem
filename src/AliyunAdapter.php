@@ -415,15 +415,18 @@ class AliyunAdapter implements FilesystemAdapter
      * @param  string  $path
      * @param  \DateTimeInterface  $expiration
      * @param  array  $options
-     * @return string
+     * @return array
      */
-    public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): array
     {
         $options = array_merge($options, [
             'options' => [
                 OssClient::OSS_METHOD => OssClient::OSS_HTTP_PUT,
             ],
         ]);
-        return $this->getTemporaryUrl($path, $expiration, $options);
+        return [
+            'url' => $this->getTemporaryUrl($path, $expiration, $options),
+            'headers' => [],
+        ];
     }
 }

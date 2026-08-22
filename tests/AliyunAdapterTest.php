@@ -553,6 +553,9 @@ class AliyunAdapterTest extends TestCase
             ->once();
 
         $url = $adapter->temporaryUploadUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')));
-        $this->assertSame("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************", $url);
+        $this->assertSame([
+            'url' => "http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************",
+            'headers' => [],
+        ], $url);
     }
 }
