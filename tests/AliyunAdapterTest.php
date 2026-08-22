@@ -558,4 +558,37 @@ class AliyunAdapterTest extends TestCase
             'headers' => [],
         ], $url);
     }
+
+    /**
+     * @dataProvider aliyunProvider
+     *
+     * @param AliyunAdapter $adapter
+     * @param OssClient|MockInterface $client
+     */
+    public function testTemporaryUploadUrlWithOptions($adapter, $client)
+    {
+        $client->shouldReceive("signUrl")
+            ->withArgs(function ($bucket, $object, $timeout, $method, $options) {
+                return $method === OssClient::OSS_HTTP_PUT
+                    && isset($options[OssClient::OSS_QUERY_STRING]['callback']);
+            })
+            ->andReturn("http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************")
+            ->once();
+
+        $url = $adapter->temporaryUploadUrl("foo/bar.md", (new \DateTime())->add(new \DateInterval('P1D')), [
+            'options' => [
+                OssClient::OSS_QUERY_STRING => [
+                    'callback' => base64_encode(json_encode([
+                        'callbackUrl' => 'https://example.com/uploaded',
+                        'callbackBody' => '{"size":${size}}',
+                        'callbackBodyType' => 'application/json',
+                    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))
+                ],
+            ],
+        ]);
+        $this->assertSame([
+            'url' => "http://bucket.endpoint.com/foo/bar.md?OSSAccessKeyId=********&Expires=1646970000&Signature=***********************",
+            'headers' => [],
+        ], $url);
+    }
 }
